@@ -1,0 +1,30 @@
+is_train : True
+data_dir : ./cifar10/cifar-10-batches-py
+eval_freq : 250
+learning_rate : 0.0001
+print_freq : 10
+batch_size : 128
+checkpoint_dir : ./checkpoints
+log_dir : ./logs/cifar10
+train_model : linear
+checkpoint_freq : 1000
+max_steps : 15000
+Initial Test Accuracy = 0.118
+Iteration 0/15000. Train Loss = 2.303, Train Accuracy = 0.156
+Iteration 0/15000. Test Loss = 2.303, Test Accuracy = 0.089
+Iteration 250/15000. Train Loss = 1.756, Train Accuracy = 0.312
+Iteration 250/15000. Test Loss = 1.730, Test Accuracy = 0.353
+Iteration 500/15000. Train Loss = 1.618, Train Accuracy = 0.328
+Iteration 500/15000. Test Loss = 1.594, Test Accuracy = 0.400
+Iteration 750/15000. Train Loss = 1.533, Train Accuracy = 0.422
+Iteration 750/15000. Test Loss = 1.445, Test Accuracy = 0.452
+Iteration 1000/15000. Train Loss = 1.289, Train Accuracy = 0.516
+Iteration 1000/15000. Test Loss = 1.327, Test Accuracy = 0.503
+Iteration 1250/15000. Train Loss = 1.171, Train Accuracy = 0.555
+Iteration 1250/15000. Test Loss = 1.237, Test Accuracy = 0.542
+Iteration 1500/15000. Train Loss = 1.268, Train Accuracy = 0.570
+Iteration 1500/15000. Test Loss = 1.165, Test Accuracy = 0.585
+Iteration 1750/15000. Train Loss = 1.262, Train Accuracy = 0.516
+Iteration 1750/15000. Test Loss = 1.156, Test Accuracy = 0.588
+Iteration 2000/15000. Train Loss = 0.962, Train Accuracy = 0.672
+Iteration 2000/15000. Test Loss = 1.050, Test Accuracy = 0.621

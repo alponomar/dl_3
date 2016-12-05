@@ -13,6 +13,8 @@ from cifar10_siamese_utils import create_dataset as create_dataset_siamese
 from convnet import ConvNet
 from siamese import Siamese
 from sklearn.manifold import TSNE
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
@@ -112,7 +114,7 @@ def train():
     cnn = ConvNet()
 
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
-    y = tf.placeholder(tf.int32, shape=(None, n_classes), name="y")
+    y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
     with tf.name_scope('train_cnn'):
         infs = cnn.inference(x)
@@ -371,7 +373,7 @@ def feature_extraction():
     cnn = ConvNet()
 
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
-    y = tf.placeholder(tf.int32, shape=(None, n_classes), name="y")
+    y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
     with tf.name_scope('train_cnn'):
         infs = cnn.inference(x)
@@ -395,13 +397,13 @@ def feature_extraction():
         saver = tf.train.Saver()
         saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
         flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        # _plot_tsne("flatten.png", flatten_features, y_test, colors, classes)
+        _plot_tsne("flatten.png", flatten_features, y_test, colors, classes)
 
         fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        # _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes)
+        _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes)
 
         fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        # _plot_tsne("fc2.png", fc2_features, y_test, colors, classes)
+        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes)
     model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(fc2_features, y_test)
     predictions = model.predict(fc2_features)
     get_conf_mat(predictions, y_test, classes)
