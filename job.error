@@ -23,3 +23,8 @@ I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 0:   Y N
 I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 1:   N Y 
 I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:03:00.0)
 I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:1) -> (device: 1, name: Tesla K40m, pci bus id: 0000:82:00.0)
+slurmstepd: *** STEP 2611621.0 ON gcn31 CANCELLED AT 2016-12-05T19:47:50 DUE TO TIME LIMIT ***
+slurmstepd: *** JOB 2611621 ON gcn31 CANCELLED AT 2016-12-05T19:47:50 DUE TO TIME LIMIT ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:03:00.0)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:1) -> (device: 1, name: Tesla K40m, pci bus id: 0000:82:00.0)
