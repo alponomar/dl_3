@@ -512,7 +512,7 @@ def main(_):
 
     if FLAGS.is_train:
         if FLAGS.train_model == 'linear':
-            train()
+           # train()
             feature_extraction()
             # train_one_vs_all()
 

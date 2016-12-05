@@ -9,64 +9,57 @@ log_dir : ./logs/cifar10
 train_model : linear
 checkpoint_freq : 1000
 max_steps : 15000
-Initial Test Accuracy = 0.106
-Iteration 0/15000. Train Loss = 2.303, Train Accuracy = 0.156
-Iteration 0/15000. Test Loss = 2.303, Test Accuracy = 0.100
-Iteration 250/15000. Train Loss = 1.753, Train Accuracy = 0.312
-Iteration 250/15000. Test Loss = 1.745, Test Accuracy = 0.330
-Iteration 500/15000. Train Loss = 1.616, Train Accuracy = 0.344
-Iteration 500/15000. Test Loss = 1.592, Test Accuracy = 0.396
-Iteration 750/15000. Train Loss = 1.547, Train Accuracy = 0.430
-Iteration 750/15000. Test Loss = 1.470, Test Accuracy = 0.448
-Iteration 1000/15000. Train Loss = 1.295, Train Accuracy = 0.531
-Iteration 1000/15000. Test Loss = 1.332, Test Accuracy = 0.509
-Iteration 1250/15000. Train Loss = 1.148, Train Accuracy = 0.578
-Iteration 1250/15000. Test Loss = 1.251, Test Accuracy = 0.544
-Iteration 1500/15000. Train Loss = 1.251, Train Accuracy = 0.562
-Iteration 1500/15000. Test Loss = 1.173, Test Accuracy = 0.579
-Iteration 1750/15000. Train Loss = 1.213, Train Accuracy = 0.492
-Iteration 1750/15000. Test Loss = 1.153, Test Accuracy = 0.586
-Iteration 2000/15000. Train Loss = 0.958, Train Accuracy = 0.672
-Iteration 2000/15000. Test Loss = 1.078, Test Accuracy = 0.627
-Iteration 2250/15000. Train Loss = 0.956, Train Accuracy = 0.672
-Iteration 2250/15000. Test Loss = 0.998, Test Accuracy = 0.653
-Iteration 2500/15000. Train Loss = 0.992, Train Accuracy = 0.672
-Iteration 2500/15000. Test Loss = 0.972, Test Accuracy = 0.667
-or sample 8000 / 10000
+[t-SNE] Computing pairwise distances...
+[t-SNE] Computing 91 nearest neighbors...
+[t-SNE] Computed conditional probabilities for sample 1000 / 10000
+[t-SNE] Computed conditional probabilities for sample 2000 / 10000
+[t-SNE] Computed conditional probabilities for sample 3000 / 10000
+[t-SNE] Computed conditional probabilities for sample 4000 / 10000
+[t-SNE] Computed conditional probabilities for sample 5000 / 10000
+[t-SNE] Computed conditional probabilities for sample 6000 / 10000
+[t-SNE] Computed conditional probabilities for sample 7000 / 10000
+[t-SNE] Computed conditional probabilities for sample 8000 / 10000
 [t-SNE] Computed conditional probabilities for sample 9000 / 10000
 [t-SNE] Computed conditional probabilities for sample 10000 / 10000
-[t-SNE] Mean sigma: 189.068182
-[t-SNE] Iteration 25: error = 0.8075620, gradient norm = 0.0006481
-[t-SNE] Iteration 25: gradient norm 0.000648. Finished.
-Iteration 2750/15000. Train Loss = 0.726, Train Accuracy = 0.766
-Iteration 2750/15000. Test Loss = 0.911, Test Accuracy = 0.685
-Iteration 3000/15000. Train Loss = 0.859, Train Accuracy = 0.742
-Iteration 3000/15000. Test Loss = 0.925, Test Accuracy = 0.682
-Iteration 3250/15000. Train Loss = 0.787, Train Accuracy = 0.719
-Iteration 3250/15000. Test Loss = 0.908, Test Accuracy = 0.686
-Iteration 3500/15000. Train Loss = 0.661, Train Accuracy = 0.812
-Iteration 3500/15000. Test Loss = 0.832, Test Accuracy = 0.715
-Iteration 3750/15000. Train Loss = 0.556, Train Accuracy = 0.820
-Iteration 3750/15000. Test Loss = 0.816, Test Accuracy = 0.720
-Iteration 4000/15000. Train Loss = 0.588, Train Accuracy = 0.836
-Iteration 4000/15000. Test Loss = 0.810, Test Accuracy = 0.722
-Iteration 4250/15000. Train Loss = 0.703, Train Accuracy = 0.781
-Iteration 4250/15000. Test Loss = 0.801, Test Accuracy = 0.725
-Iteration 4500/15000. Train Loss = 0.688, Train Accuracy = 0.789
-Iteration 4500/15000. Test Loss = 0.771, Test Accuracy = 0.735
-Iteration 4750/15000. Train Loss = 0.637, Train Accuracy = 0.773
-Iteration 4750/15000. Test Loss = 0.789, Test Accuracy = 0.734
-Iteration 5000/15000. Train Loss = 0.574, Train Accuracy = 0.789
-Iteration 5000/15000. Test Loss = 0.750, Test Accuracy = 0.745
-Iteration 5250/15000. Train Loss = 0.419, Train Accuracy = 0.891
-Iteration 5250/15000. Test Loss = 0.753, Test Accuracy = 0.750
-Iteration 5500/15000. Train Loss = 0.340, Train Accuracy = 0.859
-Iteration 5500/15000. Test Loss = 0.772, Test Accuracy = 0.743
-Iteration 5750/15000. Train Loss = 0.434, Train Accuracy = 0.828
-Iteration 5750/15000. Test Loss = 0.754, Test Accuracy = 0.748
-Iteration 6000/15000. Train Loss = 0.280, Train Accuracy = 0.914
-Iteration 6000/15000. Test Loss = 0.779, Test Accuracy = 0.747
-Iteration 6250/15000. Train Loss = 0.318, Train Accuracy = 0.898
-Iteration 6250/15000. Test Loss = 0.755, Test Accuracy = 0.759
-Iteration 6500/15000. Train Loss = 0.314, Train Accuracy = 0.883
-Iteration 6500/15000. Test Loss = 0.786, Test Accuracy = 0.751
+[t-SNE] Mean sigma: 194.641728
+[t-SNE] Iteration 25: error = 0.8179844, gradient norm = 0.0006837
+[t-SNE] Iteration 25: gradient norm 0.000684. Finished.
+[t-SNE] Iteration 50: error = 0.8063254, gradient norm = 0.0039271
+[t-SNE] Iteration 75: error = 0.8011938, gradient norm = 0.0032224
+[t-SNE] Iteration 100: error = 0.7999636, gradient norm = 0.0030928
+[t-SNE] Error after 100 iterations with early exaggeration: 0.799964
+[t-SNE] Iteration 125: error = 0.7915228, gradient norm = 0.0024668
+[t-SNE] Iteration 150: error = 0.7884282, gradient norm = 0.0023087
+[t-SNE] Iteration 175: error = 0.7876103, gradient norm = 0.0022722
+[t-SNE] Iteration 200: error = 0.7873882, gradient norm = 0.0022624
+[t-SNE] Iteration 225: error = 0.7873256, gradient norm = 0.0022598
+[t-SNE] Iteration 250: error = 0.7873073, gradient norm = 0.0022591
+[t-SNE] Iteration 275: error = 0.7873018, gradient norm = 0.0022589
+[t-SNE] Iteration 275: error difference 0.000000. Finished.
+[t-SNE] Error after 275 iterations: 0.787302
+[t-SNE] Computing pairwise distances...
+[t-SNE] Computing 91 nearest neighbors...
+[t-SNE] Computed conditional probabilities for sample 1000 / 10000
+[t-SNE] Computed conditional probabilities for sample 2000 / 10000
+[t-SNE] Computed conditional probabilities for sample 3000 / 10000
+[t-SNE] Computed conditional probabilities for sample 4000 / 10000
+[t-SNE] Computed conditional probabilities for sample 5000 / 10000
+[t-SNE] Computed conditional probabilities for sample 6000 / 10000
+[t-SNE] Computed conditional probabilities for sample 7000 / 10000
+[t-SNE] Computed conditional probabilities for sample 8000 / 10000
+[t-SNE] Computed conditional probabilities for sample 9000 / 10000
+[t-SNE] Computed conditional probabilities for sample 10000 / 10000
+[t-SNE] Mean sigma: 84.555317
+[t-SNE] Iteration 25: error = 1.0622134, gradient norm = 0.0006130
+[t-SNE] Iteration 25: gradient norm 0.000613. Finished.
+[t-SNE] Iteration 50: error = 1.0434738, gradient norm = 0.0033440
+[t-SNE] Iteration 75: error = 1.0354968, gradient norm = 0.0025835
+[t-SNE] Iteration 100: error = 1.0337034, gradient norm = 0.0024687
+[t-SNE] Error after 100 iterations with early exaggeration: 1.033703
+[t-SNE] Iteration 125: error = 1.0209494, gradient norm = 0.0018768
+[t-SNE] Iteration 150: error = 1.0165949, gradient norm = 0.0017230
+[t-SNE] Iteration 175: error = 1.0154841, gradient norm = 0.0016890
+[t-SNE] Iteration 200: error = 1.0151811, gradient norm = 0.0016801
+[t-SNE] Iteration 225: error = 1.0150970, gradient norm = 0.0016777
+[t-SNE] Iteration 250: error = 1.0150748, gradient norm = 0.0016771
+[t-SNE] Iteration 275: error = 1.0150697, gradient norm = 0.0016769
