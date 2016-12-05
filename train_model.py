@@ -95,13 +95,13 @@ def train():
     ########################
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
     x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
-    print(x_test.shape)
     #### PARAMETERS
     learning_rate = LEARNING_RATE_DEFAULT
-    iterations = 500
+    iterations = FLAGS.max_steps
     batch_size = BATCH_SIZE_DEFAULT
     log_dir = LOG_DIR_DEFAULT
-    checkpoint_freq = 500
+    checkpoint_freq = FLAGS.checkpoint_freq
+    eval_freq =FLAGS.eval_freq
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -141,7 +141,7 @@ def train():
           x_batch, y_batch = cifar10.train.next_batch(batch_size)      
           _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch})
 
-          if iteration > 0 and iteration % 500 == 0:
+          if iteration % eval_freq == 0:
             [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
             train_writer.add_summary(summary_train, iteration)
 
@@ -213,10 +213,10 @@ def train_siamese():
 
     #### PARAMETERS
     learning_rate = LEARNING_RATE_DEFAULT
-    iterations = 10000
+    iterations = 500
     batch_size = BATCH_SIZE_DEFAULT
     log_dir = LOG_DIR_DEFAULT
-    checkpoint_freq = 1000
+    checkpoint_freq = 500
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -306,10 +306,12 @@ def get_conf_mat(test_predictions, true_labels, classes):
   plt.title('CIFAR10, confusion matrix', fontsize = 20)
   data = conf_mat.values / np.amax(conf_mat.values) * 255.
   plt.imshow(data, interpolation='none')
-  plt.show()
+  plt.savefig('conf_mat.png')
+  # plt.show()
+  predicted_classes = [classes[i] for i in range(len(classes)) if i in list(test_predictions)]
 
-  conf_mat.columns = classes
-  conf_mat['Predicted'] = classes
+  conf_mat.columns = predicted_classes
+  conf_mat['True'] = classes
   cols = conf_mat.columns.tolist()
   cols = cols[-1:] + cols[:-1]
   conf_mat = conf_mat[cols]  
@@ -377,27 +379,32 @@ def feature_extraction():
         fc1 = cnn.fc1
         fc2 = cnn.fc2
 
-    def _plot_tsne(features, y, colors, classes):
+    def _plot_tsne(name, features, y, colors, classes):
         model = TSNE(random_state=0, n_iter=400, perplexity=30, verbose=10).fit_transform(features)
         labels = [classes[lab] for lab in y]
+        plt.figure()
         for class_id in range(len(classes)):
             model_x = [model[i, 0] for i in range(len(y)) if y[i] == class_id]
             model_y = [model[i, 1] for i in range(len(y)) if y[i] == class_id]
             plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id])
         plt.legend(loc='upper left')
-        plt.show()
+        plt.savefig(name)
 
     with tf.Session() as sess:
 
         saver = tf.train.Saver()
         saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
         flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        _plot_tsne(flatten_features, y_test, colors, classes)
-        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        _plot_tsne(fc1_features, y_test, colors, classes)
-        fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        _plot_tsne(fc2_features, y_test, colors, classes)
+        # _plot_tsne("flatten.png", flatten_features, y_test, colors, classes)
 
+        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
+        # _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes)
+
+        fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
+        # _plot_tsne("fc2.png", fc2_features, y_test, colors, classes)
+    model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(fc2_features, y_test)
+    predictions = model.predict(fc2_features)
+    get_conf_mat(predictions, y_test, classes)
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
@@ -505,7 +512,7 @@ def main(_):
         if FLAGS.train_model == 'linear':
             train()
             feature_extraction()
-            train_one_vs_all()
+            # train_one_vs_all()
 
         elif FLAGS.train_model == 'siamese':
             train_siamese()
