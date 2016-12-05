@@ -96,7 +96,7 @@ def train():
     # PUT YOUR CODE HERE  #
     ########################
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
     #### PARAMETERS
     learning_rate = LEARNING_RATE_DEFAULT
     iterations = FLAGS.max_steps
@@ -365,7 +365,7 @@ def feature_extraction():
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
     y_test = np.argmax(y_test, axis=1)
     input_data_dim = cifar10.test.images.shape[1]
     n_classes = 10

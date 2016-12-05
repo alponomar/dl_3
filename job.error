@@ -6,10 +6,10 @@ I tensorflow/stream_executor/dso_loader.cc:108] successfully opened CUDA library
 I tensorflow/core/common_runtime/gpu/gpu_init.cc:102] Found device 0 with properties: 
 name: Tesla K40m
 major: 3 minor: 5 memoryClockRate (GHz) 0.745
-pciBusID 0000:03:00.0
+pciBusID 0000:02:00.0
 Total memory: 11.17GiB
 Free memory: 11.10GiB
-W tensorflow/stream_executor/cuda/cuda_driver.cc:572] creating context when one is currently active; existing: 0x472c700
+W tensorflow/stream_executor/cuda/cuda_driver.cc:572] creating context when one is currently active; existing: 0x457cbd0
 I tensorflow/core/common_runtime/gpu/gpu_init.cc:102] Found device 1 with properties: 
 name: Tesla K40m
 major: 3 minor: 5 memoryClockRate (GHz) 0.745
@@ -21,10 +21,8 @@ I tensorflow/core/common_runtime/gpu/gpu_init.cc:59] cannot enable peer access f
 I tensorflow/core/common_runtime/gpu/gpu_init.cc:126] DMA: 0 1 
 I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 0:   Y N 
 I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 1:   N Y 
-I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:03:00.0)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:02:00.0)
 I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:1) -> (device: 1, name: Tesla K40m, pci bus id: 0000:82:00.0)
-slurmstepd: *** STEP 2611621.0 ON gcn31 CANCELLED AT 2016-12-05T19:47:50 DUE TO TIME LIMIT ***
-slurmstepd: *** JOB 2611621 ON gcn31 CANCELLED AT 2016-12-05T19:47:50 DUE TO TIME LIMIT ***
+slurmstepd: *** JOB 2611681 ON gcn16 CANCELLED AT 2016-12-05T20:25:20 DUE TO TIME LIMIT ***
+slurmstepd: *** STEP 2611681.0 ON gcn16 CANCELLED AT 2016-12-05T20:25:20 DUE TO TIME LIMIT ***
 srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:03:00.0)
-I tensorflow/core/common_runtime/gpu/gpu_device.cc:838] Creating TensorFlow device (/gpu:1) -> (device: 1, name: Tesla K40m, pci bus id: 0000:82:00.0)
