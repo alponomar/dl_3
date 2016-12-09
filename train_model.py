@@ -95,9 +95,14 @@ def train():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
+<<<<<<< HEAD
     cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=10000)
     x_val, y_val = cifar10.validation.images[0:1000], cifar10.validation.labels[0:1000]
     x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
+=======
+    cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
+>>>>>>> a2799dcf1d7f3d929110bb90e24dc47fbd3537c6
     #### PARAMETERS
     learning_rate = FLAGS.learning_rate
     iterations = FLAGS.max_steps
@@ -378,7 +383,7 @@ def feature_extraction():
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
     y_test = np.argmax(y_test, axis=1)
     input_data_dim = cifar10.test.images.shape[1]
     n_classes = 10
@@ -527,8 +532,13 @@ def main(_):
 
     if FLAGS.is_train:
         if FLAGS.train_model == 'linear':
+<<<<<<< HEAD
             train()
             # feature_extraction()
+=======
+           # train()
+            feature_extraction()
+>>>>>>> a2799dcf1d7f3d929110bb90e24dc47fbd3537c6
             # train_one_vs_all()
 
         elif FLAGS.train_model == 'siamese':
