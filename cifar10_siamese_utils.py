@@ -157,7 +157,8 @@ def create_dataset(source_data, num_tuples = 500, batch_size = 128, fraction_sam
     # PUT YOUR CODE HERE  #
     ########################
     # raise NotImplementedError
-    dset = source_data.next_batch(num_tuples, fraction_same)
+
+    dset = [source_data.next_batch(num_tuples, fraction_same) for i in range(num_tuples)]
     ########################
     # END OF YOUR CODE    #
     ########################

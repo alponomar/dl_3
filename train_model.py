@@ -95,13 +95,14 @@ def train():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
+    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=10000)
+    x_val, y_val = cifar10.validation.images[0:1000], cifar10.validation.labels[0:1000]
     x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
     #### PARAMETERS
-    learning_rate = LEARNING_RATE_DEFAULT
+    learning_rate = FLAGS.learning_rate
     iterations = FLAGS.max_steps
-    batch_size = BATCH_SIZE_DEFAULT
-    log_dir = LOG_DIR_DEFAULT
+    batch_size = FLAGS.batch_size
+    log_dir = FLAGS.log_dir
     checkpoint_freq = FLAGS.checkpoint_freq
     eval_freq =FLAGS.eval_freq
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
@@ -131,13 +132,15 @@ def train():
     
     with tf.Session() as sess:
         saver = tf.train.Saver() 
-        train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
-        test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
+        
 
         sess.run(tf.initialize_all_variables())
 
         test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
         print("Initial Test Accuracy = {0:.3f}".format(test_acc))
+
+        train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
+        test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
 
         for iteration in range(iterations + 1):
           x_batch, y_batch = cifar10.train.next_batch(batch_size)      
@@ -147,13 +150,13 @@ def train():
             [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
             train_writer.add_summary(summary_train, iteration)
 
-            [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
+            [val_acc, val_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val})
             test_writer.add_summary(summary_test, iteration)
 
             print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
                             format(iteration, iterations, train_loss, train_acc))
-            print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Test Accuracy = {3:.3f}".
-                            format(iteration, iterations, test_loss, test_acc))
+            print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Validation Accuracy = {3:.3f}".
+                            format(iteration, iterations, val_loss, val_acc))
 
             if iteration > 0 and iteration % checkpoint_freq == 0:
                 saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
@@ -162,6 +165,9 @@ def train():
         test_writer.flush()
         train_writer.close()
         test_writer.close()
+
+        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
+        print("Final Test Accuracy = {0:.3f}".format(test_acc))
 
         sess.close()  
 
@@ -209,16 +215,16 @@ def train_siamese():
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = get_cifar_10_siamese(DATA_DIR_DEFAULT, validation_size=5000)
-    x1_val, x2_val, y_val  = create_dataset_siamese(cifar10.validation, num_tuples = 1000, fraction_same = 0.3)
-    x1_test, x2_test, y_test  = create_dataset_siamese(cifar10.test, num_tuples = 1000, fraction_same = 0.3)
+    val_data  = create_dataset_siamese(cifar10.validation, num_tuples = 1000, fraction_same = 0.2)
+    test_data  = create_dataset_siamese(cifar10.test, num_tuples = 1000, fraction_same = 0.2)
 
 
     #### PARAMETERS
     learning_rate = LEARNING_RATE_DEFAULT
-    iterations = 500
+    iterations = 15000
     batch_size = BATCH_SIZE_DEFAULT
     log_dir = LOG_DIR_DEFAULT
-    checkpoint_freq = 500
+    checkpoint_freq = 1500
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -243,22 +249,30 @@ def train_siamese():
 
     
     with tf.Session() as sess:
+        def check_loss(data):
+            loss_val = 0.
+            for batch in data:
+                x1_data, x2_data, y_data = batch
+                [curr_loss] = sess.run([loss], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
+                loss_val += curr_loss
+            return loss_val / len(data)
+
         saver = tf.train.Saver() 
         # train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
         # test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
 
         sess.run(tf.initialize_all_variables())
 
-        test_loss = sess.run(loss, feed_dict={x1: x1_test, x2: x2_test, y: y_test})
+        test_loss = check_loss(test_data)
         print("Initial Test Loss = {0:.3f}".format(test_loss))
 
         for iteration in range(iterations + 1):
           x1_train, x2_train, y_train = cifar10.train.next_batch(BATCH_SIZE_DEFAULT)
           _ = sess.run([opt_operation], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
 
-          if iteration % 500 == 0:
+          if iteration % 50 == 0:
             [train_loss] = sess.run([loss], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
-            [val_loss] = sess.run([loss], feed_dict={x1: x1_val, x2: x2_val, y: y_val})
+            val_loss = check_loss(val_data)
             # train_writer.add_summary(summary_train, iteration)
 
             # [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
@@ -272,8 +286,7 @@ def train_siamese():
             if iteration > 0 and iteration % checkpoint_freq == 0:
                 saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model_siamese.ckpt')
 
-
-        test_loss = sess.run(loss, feed_dict={x1: x1_test, x2: x2_test, y: y_test})
+        test_loss = check_loss(test_data)
         print("Final Test Loss = {0:.3f}".format(test_loss))
         # train_writer.flush()
         # test_writer.flush()
@@ -389,21 +402,23 @@ def feature_extraction():
             model_x = [model[i, 0] for i in range(len(y)) if y[i] == class_id]
             model_y = [model[i, 1] for i in range(len(y)) if y[i] == class_id]
             plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id])
-        plt.legend(loc='upper left')
+        plt.legend(loc='upper center', ncol=5, prop={'size':9})
         plt.savefig(name)
 
     with tf.Session() as sess:
 
         saver = tf.train.Saver()
         saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
-        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        _plot_tsne("flatten.png", flatten_features, y_test, colors, classes)
+        fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
+        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes)
 
         fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
         _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes)
 
-        fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes)
+        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
+        _plot_tsne("flatten.png", flatten_features, y_test, colors, classes)
+       
+       
     model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(fc2_features, y_test)
     predictions = model.predict(fc2_features)
     get_conf_mat(predictions, y_test, classes)
@@ -513,7 +528,7 @@ def main(_):
     if FLAGS.is_train:
         if FLAGS.train_model == 'linear':
             train()
-            feature_extraction()
+            # feature_extraction()
             # train_one_vs_all()
 
         elif FLAGS.train_model == 'siamese':
