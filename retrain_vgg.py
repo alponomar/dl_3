@@ -67,7 +67,6 @@ def train():
     Evaluation on test set should be conducted over full batch, i.e. 10k images,
     while it is alright to do it over minibatch for train set.
     """
-    print("traininnnnnng$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     # Set the random seeds for reproducibility. DO NOT CHANGE.
     tf.set_random_seed(42)
     np.random.seed(42)
@@ -76,8 +75,8 @@ def train():
     # PUT YOUR CODE HERE  #
     ########################
     cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=1000)
-    x_val, y_val = cifar10.validation.images, cifar10.validation.labels
-    x_test, y_test = cifar10.test.images, cifar10.test.labels
+    x_val, y_val = cifar10.validation.images[0:10], cifar10.validation.labels[0:10]
+    x_test, y_test = cifar10.test.images[0:10], cifar10.test.labels[0:10]
    
     #### PARAMETERS
     learning_rate = FLAGS.learning_rate
@@ -91,17 +90,18 @@ def train():
     n_classes = len(classes)
     input_data_dim = cifar10.test.images.shape[1]
     #####
-    print(input_data_dim)
 
     
     fc = FC()
 
+    refine_after_k = tf.placeholder(tf.bool)
     x = tf.placeholder(tf.float32, shape=(None, None, None, 3), name="x")
     y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
     with tf.name_scope('refine_cnn'):
         pool5, assign_ops = load_pretrained_VGG16_pool5(x)
-        # pool5 = tf.stop_gradient(pool5)
+        pool5 = tf.cond(refine_after_k, lambda: tf.stop_gradient(pool5), lambda: pool5)
+
         infs = fc.inference(pool5)
         with tf.name_scope('cross-entropy-loss'): 
           loss = fc.loss(infs, y)
@@ -121,23 +121,23 @@ def train():
         for op in assign_ops:
             sess.run(op)
 
-        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
+        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test, refine_after_k: False})
         print("Initial Test Accuracy = {0:.3f}".format(test_acc))
 
         train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
         test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
 
         for iteration in range(iterations + 1):
-          # print("iteration", iteration)
+          print("iteration", iteration)
           x_batch, y_batch = cifar10.train.next_batch(batch_size)      
-          _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch})
+          _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch, refine_after_k: FLAGS.refine_after_k > iteration})
 
           if iteration % eval_freq == 0:
-            # print("testing!")
-            [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
+            print("testing!")
+            [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch, refine_after_k: False})
             train_writer.add_summary(summary_train, iteration)
 
-            [val_acc, val_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val})
+            [val_acc, val_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val, refine_after_k:False})
             test_writer.add_summary(summary_test, iteration)
 
             print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
@@ -153,7 +153,7 @@ def train():
         train_writer.close()
         test_writer.close()
 
-        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
+        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test, refine_after_k: False})
         print("Final Test Accuracy = {0:.3f}".format(test_acc))
 
         sess.close()

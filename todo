@@ -1,0 +1,15 @@
+todo
+TASK 3
+1. make refine work on the server
+2. add histograms
+
+TASK 1
+1. make 1vsAll train on train data
+2. think how to visualise 1vsAll
+3. make sure that you can get histograms and pictures
+  
+
+git remote set-url origin ssh://git@githubcom/alponomar/dl_3git
+squeue -u gdemo040
+sbatch example_job
+accinfo
