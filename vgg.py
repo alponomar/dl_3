@@ -18,6 +18,12 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                     to all parameters.
     """
 
+    def _add_to_histograms_conv(name, w, b, out, conv):
+        tf.histogram_summary(name + '_W', w)
+        tf.histogram_summary(name + '_b', b)
+        tf.histogram_summary(name + '_out', out)
+        tf.histogram_summary(name, conv)
+
     with tf.variable_scope(scope_name):
 
         vgg_weights, vgg_keys = load_weights(VGG_FILE)
@@ -39,6 +45,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             out = tf.nn.bias_add(conv, biases)
             conv1_1 = tf.nn.relu(out, name=scope)
 
+            _add_to_histograms_conv('conv1_1', vgg_W, vgg_B, out, conv1_1)
 
         # conv1_2
         with tf.name_scope('conv1_2') as scope:
@@ -57,12 +64,15 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             out = tf.nn.bias_add(conv, biases)
             conv1_2 = tf.nn.relu(out, name=scope)
 
+            _add_to_histograms_conv('conv1_2', vgg_W, vgg_B, out, conv1_2)
+
         # pool1
         pool1 = tf.nn.max_pool(conv1_2,
                                ksize=[1, 2, 2, 1],
                                strides=[1, 2, 2, 1],
                                padding='SAME',
                                name='pool1')
+        tf.histogram_summary('pool1', pool1)
 
         # conv2_1
         with tf.name_scope('conv2_1') as scope:
@@ -79,6 +89,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv2_1 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv2_1', vgg_W, vgg_B, out, conv2_1)
 
         # conv2_2
         with tf.name_scope('conv2_2') as scope:
@@ -95,6 +106,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv2_2 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv2_2', vgg_W, vgg_B, out, conv2_2)
 
         # pool2
         pool2 = tf.nn.max_pool(conv2_2,
@@ -102,6 +114,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                                strides=[1, 2, 2, 1],
                                padding='SAME',
                                name='pool2')
+        tf.histogram_summary('pool2', pool2)
 
         # conv3_1
         with tf.name_scope('conv3_1') as scope:
@@ -118,6 +131,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv3_1 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv3_1', vgg_W, vgg_B, out, conv3_1)
 
         # conv3_2
         with tf.name_scope('conv3_2') as scope:
@@ -135,6 +149,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv3_2 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv3_2', vgg_W, vgg_B, out, conv3_2)
 
         # conv3_3
         with tf.name_scope('conv3_3') as scope:
@@ -151,6 +166,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv3_3 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv3_3', vgg_W, vgg_B, out, conv3_3)
 
         # pool3
         pool3 = tf.nn.max_pool(conv3_3,
@@ -158,6 +174,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                                strides=[1, 2, 2, 1],
                                padding='SAME',
                                name='pool3')
+        tf.histogram_summary('pool3', pool3)
 
         # conv4_1
         with tf.name_scope('conv4_1') as scope:
@@ -174,6 +191,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv4_1 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv4_1', vgg_W, vgg_B, out, conv4_1)
 
         # conv4_2
         with tf.name_scope('conv4_2') as scope:
@@ -190,6 +208,8 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv4_2 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv4_2', vgg_W, vgg_B, out, conv4_2)
+
 
         # conv4_3
         with tf.name_scope('conv4_3') as scope:
@@ -206,6 +226,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv4_3 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv4_3', vgg_W, vgg_B, out, conv4_3)
 
         # pool4
         pool4 = tf.nn.max_pool(conv4_3,
@@ -213,6 +234,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                                strides=[1, 2, 2, 1],
                                padding='SAME',
                                name='pool4')
+        tf.histogram_summary('pool4', pool4)
 
         # conv5_1
         with tf.name_scope('conv5_1') as scope:
@@ -229,6 +251,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv5_1 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv5_1', vgg_W, vgg_B, out, conv5_1)
 
 
         # conv5_2
@@ -246,6 +269,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv5_2 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv5_2', vgg_W, vgg_B, out, conv5_2)
 
         # conv5_3
         with tf.name_scope('conv5_3') as scope:
@@ -262,6 +286,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv5_3 = tf.nn.relu(out, name=scope)
+            _add_to_histograms_conv('conv5_3', vgg_W, vgg_B, out, conv5_3)
 
 
         # pool5
@@ -270,6 +295,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                                strides=[1, 2, 2, 1],
                                padding='SAME',
                                name='pool5')
+        tf.histogram_summary('pool5', pool5)
 
     return pool5, assign_ops
 

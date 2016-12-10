@@ -55,6 +55,10 @@ class Siamese(object):
                 b = tf.get_variable('b', b_shape, initializer=tf.constant_initializer(0))
                 conv_out = act_func(tf.nn.conv2d(x_inp, W, strides=[1, 1, 1, 1], padding='SAME') + b)
                 out = tf.nn.max_pool(conv_out, ksize=[1, max_pool_kernel, max_pool_kernel, 1], strides=[1, max_pool_stride, max_pool_stride, 1], padding='SAME')
+                tf.histogram_summary(name + '_weights', W)
+                tf.histogram_summary(name + '_b', b)
+                tf.histogram_summary(name + '_out', conv_out)
+                tf.histogram_summary(name + '_maxpool', out)
                 return out
 
             def _forward_fc_layer(name, w_shape, b_shape, x_inp, regularizer_strength, act_func, reuse):
@@ -62,6 +66,9 @@ class Siamese(object):
                 W = tf.get_variable('W', w_shape, initializer=tf.random_normal_initializer(mean = 0.0, stddev=1e-3, dtype=tf.float32),regularizer = regularizers.l2_regularizer(regularizer_strength))
                 b = tf.get_variable('b', b_shape, initializer=tf.constant_initializer(0))
                 out = act_func(tf.matmul(x_inp, W) + b)
+                tf.histogram_summary(name + '_weights', W)
+                tf.histogram_summary(name + '_b', b)
+                tf.histogram_summary(name + '_out', out)
               return out
 
             conv1 = _forward_conv_layer(name='conv1', w_shape=[5, 5, 3, 64], b_shape=64, 
@@ -119,6 +126,7 @@ class Siamese(object):
         d2 = tf.square(d)
         loss_all = label * d2 + (1 - label) * tf.maximum(margin - d2, 0.)
         loss = tf.reduce_mean(loss_all)
+        tf.scalar_summary('loss', loss)
         # raise NotImplementedError
         ########################
         # END OF YOUR CODE    #

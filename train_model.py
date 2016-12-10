@@ -338,10 +338,10 @@ def train_one_vs_all():
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
-    x_train, y_train =  cifar10.train.next_batch(1000)   
-    x_test = x_test.reshape(1000, -1)
-    x_train = x_train.reshape(1000, -1)
+    x_test, y_test = cifar10.test.images[0:100], cifar10.test.labels[0:100]
+    x_train, y_train =  cifar10.train.next_batch(100)   
+    x_test = x_test.reshape(100, -1)
+    x_train = x_train.reshape(100, -1)
     y_test = np.argmax(y_test, axis = 1)
     y_train = np.argmax(y_train, axis = 1)
 
@@ -372,11 +372,13 @@ def feature_extraction():
     # PUT YOUR CODE HERE  #
     ########################
 
+    print("0")
     tf.reset_default_graph()
 
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     colors = ['r','g','b','y', 'm', 'c', 'w', 'k', 'chartreuse', 'gray']
+    markers = ['x', '8', 'D', 'o', '*', 'v', '<', '>', 's', 'p']
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
@@ -386,7 +388,7 @@ def feature_extraction():
     n_classes = 10
     learning_rate = LEARNING_RATE_DEFAULT
     cnn = ConvNet()
-
+    print("1")
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
     y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
@@ -395,35 +397,39 @@ def feature_extraction():
         flatten = cnn.flatten
         fc1 = cnn.fc1
         fc2 = cnn.fc2
-
-    def _plot_tsne(name, features, y, colors, classes):
+    print("2")
+    def _plot_tsne(name, features, y, colors, classes, markers):
         model = TSNE(random_state=0, n_iter=400, perplexity=30, verbose=10).fit_transform(features)
         labels = [classes[lab] for lab in y]
         plt.figure()
         for class_id in range(len(classes)):
             model_x = [model[i, 0] for i in range(len(y)) if y[i] == class_id]
             model_y = [model[i, 1] for i in range(len(y)) if y[i] == class_id]
-            plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id])
+            plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id], marker = markers[class_id])
         plt.legend(loc='upper center', ncol=5, prop={'size':9})
         plt.savefig(name)
 
+    print("3")
     with tf.Session() as sess:
 
         saver = tf.train.Saver()
+        print("4")
         saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
+        print("5")
         fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes)
+        print("6")
+        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes, markers)
 
-        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes)
+        # fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
+        # _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes, markers)
 
-        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        _plot_tsne("flatten.png", flatten_features, y_test, colors, classes)
+        # flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
+        # _plot_tsne("flatten.png", flatten_features, y_test, colors, classes, markers)
        
        
-    model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(fc2_features, y_test)
-    predictions = model.predict(fc2_features)
-    get_conf_mat(predictions, y_test, classes)
+    # model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(fc2_features, y_test)
+    # predictions = model.predict(fc2_features)
+    # get_conf_mat(predictions, y_test, classes)
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
@@ -526,11 +532,12 @@ def main(_):
     print_flags()
 
     initialize_folders()
-
+    print(FLAGS.is_train)
+    print(FLAGS.is_train == False)
     if FLAGS.is_train:
         if FLAGS.train_model == 'linear':
-            train()
-            # feature_extraction()
+            # train()
+            feature_extraction()
         elif FLAGS.train_model == 'siamese':
             train_siamese()
             # feature_extraction_siamese()
@@ -561,7 +568,7 @@ if __name__ == '__main__':
                       help='Summaries log directory')
     parser.add_argument('--checkpoint_dir', type = str, default = CHECKPOINT_DIR_DEFAULT,
                       help='Checkpoint directory')
-    parser.add_argument('--is_train', type = str, default = True,
+    parser.add_argument('--is_train', type = bool, default = True,
                       help='Training or feature extraction')
     parser.add_argument('--train_model', type = str, default = 'linear',
                       help='Type of model. Possible options: linear and siamese')
