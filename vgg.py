@@ -190,6 +190,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv4_2 = tf.nn.relu(out, name=scope)
+            print(conv4_2.get_shape())
 
         # conv4_3
         with tf.name_scope('conv4_3') as scope:
@@ -206,6 +207,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv4_3 = tf.nn.relu(out, name=scope)
+        print(conv4_3.get_shape())
 
         # pool4
         pool4 = tf.nn.max_pool(conv4_3,
@@ -213,6 +215,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                                strides=[1, 2, 2, 1],
                                padding='SAME',
                                name='pool4')
+        print(pool4.get_shape())
 
         # conv5_1
         with tf.name_scope('conv5_1') as scope:
@@ -229,6 +232,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv5_1 = tf.nn.relu(out, name=scope)
+            print(conv5_1.get_shape())
 
 
         # conv5_2
@@ -246,7 +250,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv5_2 = tf.nn.relu(out, name=scope)
-
+            print(conv5_2.get_shape()) 
 
         # conv5_3
         with tf.name_scope('conv5_3') as scope:
@@ -263,6 +267,7 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
             assign_ops.append(biases.assign(vgg_B))
             out = tf.nn.bias_add(conv, biases)
             conv5_3 = tf.nn.relu(out, name=scope)
+	    print(conv5_3.get_shape())
 
 
         # pool5

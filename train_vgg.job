@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -n 1
+#SBATCH -p gpu
+#SBATCH -t 00:40:00
+#SBATCH -o job_vgg.output
+#SBATCH -e job_vgg.error
+
+module load python/2.7.11
+module load cuda/7.5.18
+module load cudnn/7.5-v5
+
+srun -u python retrain_vgg.py  --max_steps 1500 --eval_freq 300 --checkpoint_freq 1500
+

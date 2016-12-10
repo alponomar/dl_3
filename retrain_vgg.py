@@ -67,7 +67,7 @@ def train():
     Evaluation on test set should be conducted over full batch, i.e. 10k images,
     while it is alright to do it over minibatch for train set.
     """
-
+    print("traininnnnnng$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     # Set the random seeds for reproducibility. DO NOT CHANGE.
     tf.set_random_seed(42)
     np.random.seed(42)
@@ -91,8 +91,9 @@ def train():
     n_classes = len(classes)
     input_data_dim = cifar10.test.images.shape[1]
     #####
+    print(input_data_dim)
 
-
+    
     fc = FC()
 
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
@@ -155,14 +156,15 @@ def train():
         test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
         print("Final Test Accuracy = {0:.3f}".format(test_acc))
 
-        sess.close()  
+        sess.close()
+     
 
     # raise NotImplementedError
 
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+    # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
     ########################

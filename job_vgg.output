@@ -1,0 +1,15 @@
+data_dir : ./cifar10/cifar-10-batches-py
+eval_freq : 300
+learning_rate : 0.0001
+print_freq : 10
+batch_size : 128
+refine_after_k : 0
+checkpoint_dir : ./checkpoints
+log_dir : ./logs/cifar10
+checkpoint_freq : 1500
+max_steps : 1500
+traininnnnnng$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+32
+(?, 4, 4, 512)
+(?, 4, 4, 512)
+(?, 2, 2, 512)
