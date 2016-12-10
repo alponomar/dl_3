@@ -225,6 +225,10 @@ def load_pretrained_VGG16_pool5(input, scope_name='vgg'):
                                      initializer=tf.random_normal_initializer())
 
             assign_ops.append(kernel.assign(vgg_W))
+	    print("vgg_W", vgg_W.shape)
+            print("vgg_B", vgg_B.shape)
+            print("pool4", pool4.get_shape())
+            print("kernel", kernel.get_shape())
             conv = tf.nn.conv2d(pool4, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.get_variable('conv5_1/'  + "biases", vgg_B.shape,
                                     initializer=tf.constant_initializer(0.0))

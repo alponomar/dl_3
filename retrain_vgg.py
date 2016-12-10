@@ -75,9 +75,9 @@ def train():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=5000)
-    x_val, y_val = cifar10.validation.images[0:100], cifar10.validation.labels[0:100]
-    x_test, y_test = cifar10.test.images[0:100], cifar10.test.labels[0:100]
+    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=1000)
+    x_val, y_val = cifar10.validation.images, cifar10.validation.labels
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
    
     #### PARAMETERS
     learning_rate = FLAGS.learning_rate
@@ -96,12 +96,12 @@ def train():
     
     fc = FC()
 
-    x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
+    x = tf.placeholder(tf.float32, shape=(None, None, None, 3), name="x")
     y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
     with tf.name_scope('refine_cnn'):
         pool5, assign_ops = load_pretrained_VGG16_pool5(x)
-        pool5 = tf.stop_gradient(pool5)
+        # pool5 = tf.stop_gradient(pool5)
         infs = fc.inference(pool5)
         with tf.name_scope('cross-entropy-loss'): 
           loss = fc.loss(infs, y)

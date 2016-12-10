@@ -1,15 +1,48 @@
 data_dir : ./cifar10/cifar-10-batches-py
-eval_freq : 300
+eval_freq : 500
 learning_rate : 0.0001
 print_freq : 10
 batch_size : 128
 refine_after_k : 0
 checkpoint_dir : ./checkpoints
 log_dir : ./logs/cifar10
-checkpoint_freq : 1500
-max_steps : 1500
+checkpoint_freq : 15000
+max_steps : 15000
 traininnnnnng$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 32
-(?, 4, 4, 512)
-(?, 4, 4, 512)
-(?, 2, 2, 512)
+(?, ?, ?, 512)
+(?, ?, ?, 512)
+(?, ?, ?, 512)
+('vgg_W', (3, 3, 512, 512))
+('vgg_B', (512,))
+('pool4', TensorShape([Dimension(None), Dimension(None), Dimension(None), Dimension(512)]))
+('kernel', TensorShape([Dimension(3), Dimension(3), Dimension(512), Dimension(512)]))
+(?, ?, ?, 512)
+(?, ?, ?, 512)
+(?, ?, ?, 512)
+pool5.shape: (?, ?, ?, 512)
+Initial Test Accuracy = 0.106
+Iteration 0/15000. Train Loss = 2.302, Train Accuracy = 0.344
+Iteration 0/15000. Test Loss = 2.303, Validation Accuracy = 0.144
+Iteration 500/15000. Train Loss = 0.521, Train Accuracy = 0.867
+Iteration 500/15000. Test Loss = 0.605, Validation Accuracy = 0.810
+Iteration 1000/15000. Train Loss = 0.388, Train Accuracy = 0.867
+Iteration 1000/15000. Test Loss = 0.510, Validation Accuracy = 0.850
+Iteration 1500/15000. Train Loss = 0.202, Train Accuracy = 0.930
+Iteration 1500/15000. Test Loss = 0.500, Validation Accuracy = 0.847
+Iteration 2000/15000. Train Loss = 0.040, Train Accuracy = 0.992
+Iteration 2000/15000. Test Loss = 0.508, Validation Accuracy = 0.870
+Iteration 2500/15000. Train Loss = 0.084, Train Accuracy = 0.984
+Iteration 2500/15000. Test Loss = 0.528, Validation Accuracy = 0.874
+Iteration 3000/15000. Train Loss = 0.056, Train Accuracy = 0.977
+Iteration 3000/15000. Test Loss = 0.623, Validation Accuracy = 0.865
+Iteration 3500/15000. Train Loss = 0.019, Train Accuracy = 0.992
+Iteration 3500/15000. Test Loss = 0.677, Validation Accuracy = 0.859
+Iteration 4000/15000. Train Loss = 0.012, Train Accuracy = 1.000
+Iteration 4000/15000. Test Loss = 0.643, Validation Accuracy = 0.877
+Iteration 4500/15000. Train Loss = 0.036, Train Accuracy = 0.984
+Iteration 4500/15000. Test Loss = 0.594, Validation Accuracy = 0.857
+Iteration 5000/15000. Train Loss = 0.011, Train Accuracy = 1.000
+Iteration 5000/15000. Test Loss = 0.683, Validation Accuracy = 0.865
+Iteration 5500/15000. Train Loss = 0.022, Train Accuracy = 0.992
+Iteration 5500/15000. Test Loss = 0.643, Validation Accuracy = 0.864
