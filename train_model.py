@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import argparse
 import os
+from sklearn.metrics import accuracy_score
 
 import tensorflow as tf
 import numpy as np
@@ -305,7 +306,7 @@ def train_siamese():
     # END OF YOUR CODE    #
     ########################
 
-def get_conf_mat(test_predictions, true_labels, classes):
+def get_conf_mat(test_predictions, true_labels, name, classes):
   """
   Constructs confusion matrix
   Args:
@@ -320,10 +321,10 @@ def get_conf_mat(test_predictions, true_labels, classes):
   plt.figure()  
   plt.xticks(range(0, 100, 1), classes)
   plt.yticks(range(0, 100, 1), classes)
-  plt.title('CIFAR10, confusion matrix', fontsize = 20)
+  plt.title(name + ', confusion matrix', fontsize = 20)
   data = conf_mat.values / np.amax(conf_mat.values) * 255.
   plt.imshow(data, interpolation='none')
-  plt.savefig('conf_mat.png')
+  plt.savefig(name + '_conf_mat.png')
   # plt.show()
   predicted_classes = [classes[i] for i in range(len(classes)) if i in list(test_predictions)]
 
@@ -334,22 +335,17 @@ def get_conf_mat(test_predictions, true_labels, classes):
   conf_mat = conf_mat[cols]  
   print(conf_mat)
 
-def train_one_vs_all():
-    classes = ['plane', 'car', 'bird', 'cat', 'deer',
-          'dog', 'frog', 'horse', 'ship', 'truck']
-    cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:100], cifar10.test.labels[0:100]
-    x_train, y_train =  cifar10.train.next_batch(100)   
-    x_test = x_test.reshape(100, -1)
-    x_train = x_train.reshape(100, -1)
-    y_test = np.argmax(y_test, axis = 1)
-    y_train = np.argmax(y_train, axis = 1)
+def train_one_vs_all(features, y_test, name, classes):
+    prop = 0.8
+    x_train_1vsall = features[0:len(features)*prop]
+    y_train_1vsall = y_test[0:len(y_test)*prop]
 
-    # x_train, y_train = cifar10.train.next_batch(1000)
-    model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(x_train, y_train)
-    predictions = model.predict(x_test)
-
-    get_conf_mat(predictions, y_test, classes)
+    x_test_1vsall= features[len(features)*prop:len(features)]
+    y_test_1vsall = y_test[len(y_test)*prop:len(y_test)]
+    model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(x_train_1vsall, y_train_1vsall)
+    predictions = model.predict(x_test_1vsall)
+    print(name + " accuracy:" , accuracy_score(predictions, y_test_1vsall)
+   #  get_conf_mat(predictions, y_test_1vsall, name, classes)
 
 
 
@@ -372,13 +368,13 @@ def feature_extraction():
     # PUT YOUR CODE HERE  #
     ########################
 
-    print("0")
+    
     tf.reset_default_graph()
 
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     colors = ['r','g','b','y', 'm', 'c', 'w', 'k', 'chartreuse', 'gray']
-    markers = ['x', '8', 'D', 'o', '*', 'v', '<', '>', 's', 'p']
+    markers = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
@@ -388,7 +384,7 @@ def feature_extraction():
     n_classes = 10
     learning_rate = LEARNING_RATE_DEFAULT
     cnn = ConvNet()
-    print("1")
+  
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
     y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
@@ -397,7 +393,6 @@ def feature_extraction():
         flatten = cnn.flatten
         fc1 = cnn.fc1
         fc2 = cnn.fc2
-    print("2")
     def _plot_tsne(name, features, y, colors, classes, markers):
         model = TSNE(random_state=0, n_iter=400, perplexity=30, verbose=10).fit_transform(features)
         labels = [classes[lab] for lab in y]
@@ -409,27 +404,25 @@ def feature_extraction():
         plt.legend(loc='upper center', ncol=5, prop={'size':9})
         plt.savefig(name)
 
-    print("3")
     with tf.Session() as sess:
 
         saver = tf.train.Saver()
-        print("4")
+        
         saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
-        print("5")
+        
         fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        print("6")
-        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes, markers)
+       
+        # _plot_tsne("fc2.png", fc2_features, y_test, colors, classes, markers)
 
-        # fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
+        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
         # _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes, markers)
 
-        # flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
+        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
         # _plot_tsne("flatten.png", flatten_features, y_test, colors, classes, markers)
        
-       
-    # model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(fc2_features, y_test)
-    # predictions = model.predict(fc2_features)
-    # get_conf_mat(predictions, y_test, classes)
+    train_one_vs_all(fc2_features, y_test, "FC2", classes)
+    train_one_vs_all(fc1_features, y_test, "FC1", classes)
+    train_one_vs_all(flatten_features, y_test, "Flatten", classes)
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
