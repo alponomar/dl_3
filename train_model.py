@@ -135,8 +135,7 @@ def train():
     
     with tf.Session() as sess:
         saver = tf.train.Saver() 
-        
-
+    
         sess.run(tf.initialize_all_variables())
 
         test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
@@ -153,8 +152,8 @@ def train():
             [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
             train_writer.add_summary(summary_train, iteration)
 
-            [val_acc, val_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val})
-            test_writer.add_summary(summary_test, iteration)
+            [val_acc, val_loss, summary_val] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val})
+            test_writer.add_summary(summary_val, iteration)
 
             print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
                             format(iteration, iterations, train_loss, train_acc))
@@ -223,11 +222,11 @@ def train_siamese():
 
 
     #### PARAMETERS
-    learning_rate = LEARNING_RATE_DEFAULT
-    iterations = 15000
-    batch_size = BATCH_SIZE_DEFAULT
-    log_dir = LOG_DIR_DEFAULT
-    checkpoint_freq = 1500
+    learning_rate = FLAGS.learning_rate
+    iterations = FLAGS.max_steps
+    batch_size = FLAGS.batch_size
+    log_dir = FLAGS.log_dir
+    checkpoint_freq = FLAGS.checkpoint_freq
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -261,19 +260,21 @@ def train_siamese():
             return loss_val / len(data)
 
         saver = tf.train.Saver() 
-        # train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
-        # test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
 
         sess.run(tf.initialize_all_variables())
-
+        # print("testing!")
         test_loss = check_loss(test_data)
         print("Initial Test Loss = {0:.3f}".format(test_loss))
 
+                # train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
+        # test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
+
         for iteration in range(iterations + 1):
+          # print(iteration)
           x1_train, x2_train, y_train = cifar10.train.next_batch(BATCH_SIZE_DEFAULT)
           _ = sess.run([opt_operation], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
 
-          if iteration % 50 == 0:
+          if iteration % eval_freq == 0:
             [train_loss] = sess.run([loss], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
             val_loss = check_loss(val_data)
             # train_writer.add_summary(summary_train, iteration)
@@ -348,6 +349,21 @@ def train_one_vs_all(features, y_test, name, classes):
     get_conf_mat(predictions, y_test_1vsall, name, classes)
 
 
+def _plot_tsne(name, features, y):
+    classes = ['plane', 'car', 'bird', 'cat', 'deer',
+          'dog', 'frog', 'horse', 'ship', 'truck']
+    colors = ['r','g','b','y', 'm', 'c', 'w', 'k', 'chartreuse', 'gray']
+    markers = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']
+
+    model = TSNE(random_state=0, perplexity=30, verbose=10).fit_transform(features)
+    labels = [classes[lab] for lab in y]
+    plt.figure()
+    for class_id in range(len(classes)):
+        model_x = [model[i, 0] for i in range(len(y)) if y[i] == class_id]
+        model_y = [model[i, 1] for i in range(len(y)) if y[i] == class_id]
+        plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id], marker = markers[class_id])
+    plt.legend(loc='upper center', ncol=5, prop={'size':9})
+    plt.savefig(name)
 
 def feature_extraction():
     """
@@ -371,10 +387,7 @@ def feature_extraction():
     
     tf.reset_default_graph()
 
-    classes = ['plane', 'car', 'bird', 'cat', 'deer',
-          'dog', 'frog', 'horse', 'ship', 'truck']
-    colors = ['r','g','b','y', 'm', 'c', 'w', 'k', 'chartreuse', 'gray']
-    markers = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']
+    
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
@@ -393,16 +406,7 @@ def feature_extraction():
         flatten = cnn.flatten
         fc1 = cnn.fc1
         fc2 = cnn.fc2
-    def _plot_tsne(name, features, y, colors, classes, markers):
-        model = TSNE(random_state=0, perplexity=30, verbose=10).fit_transform(features)
-        labels = [classes[lab] for lab in y]
-        plt.figure()
-        for class_id in range(len(classes)):
-            model_x = [model[i, 0] for i in range(len(y)) if y[i] == class_id]
-            model_y = [model[i, 1] for i in range(len(y)) if y[i] == class_id]
-            plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id], marker = markers[class_id])
-        plt.legend(loc='upper center', ncol=5, prop={'size':9})
-        plt.savefig(name)
+
 
     with tf.Session() as sess:
 
@@ -412,13 +416,13 @@ def feature_extraction():
         
         fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
        
-        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes, markers)
+        _plot_tsne("fc2.png", fc2_features, y_test)
 
         #fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        #_plot_tsne("fc1.png",  fc1_features, y_test, colors, classes, markers)
+        #_plot_tsne("fc1.png",  fc1_features, y_test)
 
         #flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        #_plot_tsne("flatten.png", flatten_features, y_test, colors, classes, markers)
+        #_plot_tsne("flatten.png", flatten_features, y_test)
        
     train_one_vs_all(fc2_features, y_test, "FC2", classes)
     #train_one_vs_all(fc1_features, y_test, "FC1", classes)
@@ -455,7 +459,7 @@ def feature_extraction_siamese():
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
+    x_test, y_test = cifar10.test.images[0:100], cifar10.test.labels[0:100]
     y_test = np.argmax(y_test, axis=1)
     input_data_dim = cifar10.test.images.shape[1]
     n_classes = 10
@@ -473,26 +477,16 @@ def feature_extraction_siamese():
         l2_out = cnn_siamese.l2_out
 
 
-    def _plot_tsne(features, y, colors, classes):
-        model = TSNE(random_state=0, n_iter=400, verbose=10).fit_transform(features)
-        labels = [classes[lab] for lab in y]
-        for class_id in range(len(classes)):
-            model_x = [model[i, 0] for i in range(len(y)) if y[i] == class_id]
-            model_y = [model[i, 1] for i in range(len(y)) if y[i] == class_id]
-            plt.scatter(model_x, model_y, c=colors[class_id], label = classes[class_id])
-        plt.legend(loc='upper left')
-        plt.show()
-
     with tf.Session() as sess:
         saver = tf.train.Saver()
         saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model_siamese.ckpt')
-        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        _plot_tsne(fc1_features, y_test, colors, classes)
-        fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        _plot_tsne(fc2_features, y_test, colors, classes)
+        # fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
+        # _plot_tsne("FC1", fc1_features, y_test)
+        # fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
+        # _plot_tsne("FC2", fc2_features, y_test)
 
         l2_out_features = sess.run([l2_out], feed_dict={x: x_test})[0]
-        _plot_tsne(l2_out_features, y_test, colors, classes)
+        _plot_tsne("L2 out", l2_out_features, y_test, colors, classes)
         
 
     # raise NotImplementedError

@@ -79,18 +79,16 @@ class Siamese(object):
             flatten = tf.reshape(conv2, [-1, 8 * 8 * 64])
 
             self.fc1 = _forward_fc_layer(name='fc1', w_shape=[8 * 8 * 64, 384], b_shape=384, 
-              x_inp=flatten, regularizer_strength=0., act_func=tf.nn.relu, reuse=reuse)
+              x_inp=flatten, regularizer_strength=0.1, act_func=tf.nn.relu, reuse=reuse)
             self.fc2 = _forward_fc_layer(name='fc2', w_shape=[384, 192], b_shape=192, 
-              x_inp=self.fc1, regularizer_strength=0., act_func=tf.nn.relu, reuse=reuse)
+              x_inp=self.fc1, regularizer_strength=0.1, act_func=tf.nn.relu, reuse=reuse)
             with tf.variable_scope('l2_norm', reuse=reuse):
-                l2_norm = tf.nn.l2_loss(self.fc2, name='l2_norm')
-                l2_out = self.fc2 / l2_norm
-                self.l2_out = l2_out
-
+              self.l2_out = tf.nn.l2_normalize(self.fc2, 1)
+              tf.histogram_summary('l2_out', self.l2_out)
             ########################
             # END OF YOUR CODE    #
             ########################
-        return l2_out
+        return self.l2_out
 
     def loss(self, channel_1, channel_2, label, margin):
         """
@@ -124,8 +122,14 @@ class Siamese(object):
         ########################
         d = tf.sqrt(tf.reduce_sum(tf.square(channel_1 - channel_2)))
         d2 = tf.square(d)
-        loss_all = label * d2 + (1 - label) * tf.maximum(margin - d2, 0.)
-        loss = tf.reduce_mean(loss_all)
+        contrastive_loss_all = label * d2 + (1 - label) * tf.maximum(margin - d2, 0.)
+
+        contrastive_loss = tf.reduce_mean(contrastive_loss_all)
+        layers_reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+        loss = layers_reg_loss + contrastive_loss
+
+        tf.scalar_summary('reg loss', layers_reg_loss)
+        tf.scalar_summary('contrastive loss', contrastive_loss)
         tf.scalar_summary('loss', loss)
         # raise NotImplementedError
         ########################
