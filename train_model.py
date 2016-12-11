@@ -344,8 +344,8 @@ def train_one_vs_all(features, y_test, name, classes):
     y_test_1vsall = y_test[len(y_test)*prop:len(y_test)]
     model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(x_train_1vsall, y_train_1vsall)
     predictions = model.predict(x_test_1vsall)
-    print(name + " accuracy:" , accuracy_score(predictions, y_test_1vsall)
-   #  get_conf_mat(predictions, y_test_1vsall, name, classes)
+    print(name + " accuracy:" , accuracy_score(predictions, y_test_1vsall))
+    get_conf_mat(predictions, y_test_1vsall, name, classes)
 
 
 
@@ -394,7 +394,7 @@ def feature_extraction():
         fc1 = cnn.fc1
         fc2 = cnn.fc2
     def _plot_tsne(name, features, y, colors, classes, markers):
-        model = TSNE(random_state=0, n_iter=400, perplexity=30, verbose=10).fit_transform(features)
+        model = TSNE(random_state=0, perplexity=30, verbose=10).fit_transform(features)
         labels = [classes[lab] for lab in y]
         plt.figure()
         for class_id in range(len(classes)):
@@ -412,17 +412,17 @@ def feature_extraction():
         
         fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
        
-        # _plot_tsne("fc2.png", fc2_features, y_test, colors, classes, markers)
+        _plot_tsne("fc2.png", fc2_features, y_test, colors, classes, markers)
 
-        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        # _plot_tsne("fc1.png",  fc1_features, y_test, colors, classes, markers)
+        #fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
+        #_plot_tsne("fc1.png",  fc1_features, y_test, colors, classes, markers)
 
-        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        # _plot_tsne("flatten.png", flatten_features, y_test, colors, classes, markers)
+        #flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
+        #_plot_tsne("flatten.png", flatten_features, y_test, colors, classes, markers)
        
     train_one_vs_all(fc2_features, y_test, "FC2", classes)
-    train_one_vs_all(fc1_features, y_test, "FC1", classes)
-    train_one_vs_all(flatten_features, y_test, "Flatten", classes)
+    #train_one_vs_all(fc1_features, y_test, "FC1", classes)
+    #train_one_vs_all(flatten_features, y_test, "Flatten", classes)
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #

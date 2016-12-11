@@ -148,9 +148,13 @@ class ConvNet(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
+	layers_reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, labels, name='crossentropy')  
-        loss = tf.reduce_mean(cross_entropy, name='loss')
-        tf.scalar_summary('cross-entropy loss', loss)
+        ce_loss = tf.reduce_mean(cross_entropy, name='ce_loss')
+	loss = layers_reg_loss + ce_loss
+        tf.scalar_summary('cross-entropy loss', ce_loss)	
+	tf.scalar_summary('regularization loss', layers_reg_loss)
+	tf.scalar_summary('loss', loss)
         # loss = cross_entropy
         # raise NotImplementedError
         ########################

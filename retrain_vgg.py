@@ -75,8 +75,8 @@ def train():
     # PUT YOUR CODE HERE  #
     ########################
     cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=1000)
-    x_val, y_val = cifar10.validation.images[0:10], cifar10.validation.labels[0:10]
-    x_test, y_test = cifar10.test.images[0:10], cifar10.test.labels[0:10]
+    x_val, y_val = cifar10.validation.images, cifar10.validation.labels
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
    
     #### PARAMETERS
     learning_rate = FLAGS.learning_rate
@@ -128,12 +128,12 @@ def train():
         test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
 
         for iteration in range(iterations + 1):
-          print("iteration", iteration)
+          # print("iteration", iteration)
           x_batch, y_batch = cifar10.train.next_batch(batch_size)      
           _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch, refine_after_k: FLAGS.refine_after_k > iteration})
 
           if iteration % eval_freq == 0:
-            print("testing!")
+            # print("testing!")
             [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch, refine_after_k: False})
             train_writer.add_summary(summary_train, iteration)
 
@@ -146,7 +146,7 @@ def train():
                             format(iteration, iterations, val_loss, val_acc))
 
             if iteration > 0 and iteration % checkpoint_freq == 0:
-                saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
+                saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/vgg_model.ckpt')
         
         train_writer.flush()
         test_writer.flush()
