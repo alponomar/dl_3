@@ -39,7 +39,9 @@ def train_step(loss):
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+    optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
+    optimizer.learning_rate = FLAGS.learning_rate
+    train_op = optimizer.minimize(loss)
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -74,17 +76,10 @@ def train():
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=1000)
-    x_val, y_val = cifar10.validation.images, cifar10.validation.labels
+    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir)
     x_test, y_test = cifar10.test.images, cifar10.test.labels
    
     #### PARAMETERS
-    learning_rate = FLAGS.learning_rate
-    iterations = FLAGS.max_steps
-    batch_size = FLAGS.batch_size
-    log_dir = FLAGS.log_dir
-    checkpoint_freq = FLAGS.checkpoint_freq
-    eval_freq =FLAGS.eval_freq
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -109,9 +104,7 @@ def train():
           accuracy = fc.accuracy(infs, y)
 
         merged = tf.merge_all_summaries()
-        optimizer = tf.train.AdamOptimizer(learning_rate)
-        optimizer.learning_rate = learning_rate
-        opt_operation = optimizer.minimize(loss)
+        opt_operation = train_step(loss)
 
     
     with tf.Session() as sess:
@@ -124,29 +117,28 @@ def train():
         test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test, refine_after_k: False})
         print("Initial Test Accuracy = {0:.3f}".format(test_acc))
 
-        train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
-        test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
+        train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
+        test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
 
-        for iteration in range(iterations + 1):
-          # print("iteration", iteration)
-          x_batch, y_batch = cifar10.train.next_batch(batch_size)      
-          _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch, refine_after_k: FLAGS.refine_after_k > iteration})
+        for iteration in range(FLAGS.max_steps + 1):
+            x_batch, y_batch = cifar10.train.next_batch(FLAGS.batch_size)      
+            _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch, refine_after_k: FLAGS.refine_after_k > iteration})
 
-          if iteration % eval_freq == 0:
-            # print("testing!")
-            [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch, refine_after_k: False})
-            train_writer.add_summary(summary_train, iteration)
+            if iteration % FLAGS.print_freq == 0:
+                [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch, refine_after_k: False})
+                train_writer.add_summary(summary_train, iteration)
+                print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
+                                format(iteration, FLAGS.max_steps, train_loss, train_acc))
+               
 
-            [val_acc, val_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val, refine_after_k:False})
-            test_writer.add_summary(summary_test, iteration)
+            if iteration % FLAGS.eval_freq == 0:
+                [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test, refine_after_k:False})
+                test_writer.add_summary(summary_test, iteration)
+                print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Test Accuracy = {3:.3f}".
+                                format(iteration, FLAGS.max_steps, test_loss, test_acc))
 
-            print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
-                            format(iteration, iterations, train_loss, train_acc))
-            print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Validation Accuracy = {3:.3f}".
-                            format(iteration, iterations, val_loss, val_acc))
-
-            if iteration > 0 and iteration % checkpoint_freq == 0:
-                saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/vgg_model.ckpt')
+            if iteration > 0 and iteration % FLAGS.checkpoint_freq == 0:
+                saver.save(sess, FLAGS.checkpoint_dir + '/vgg_model.ckpt')
         
         train_writer.flush()
         test_writer.flush()

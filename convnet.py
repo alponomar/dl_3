@@ -148,7 +148,6 @@ class ConvNet(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-        print("hey")
         layers_reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
         cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, labels, name='crossentropy')  
         ce_loss = tf.reduce_mean(cross_entropy, name='ce_loss')

@@ -241,14 +241,18 @@ class DataSet(object):
     
     labels = np.argmax(self.labels, axis = 1)
     num_classes = np.amax(labels) + 1
+    # 10 subsets for 10 classes
     subsets = [[j for j in range(labels.shape[0]) if labels[j] == i] for i in range(num_classes)]
     x1 = []
     x2 = []
     labels = []
+    # pick random class
     chosen_class = np.random.randint(num_classes)
+    # pick random imagr from this class
     img_anch = subsets[chosen_class][np.random.randint(len(subsets[chosen_class]))]
     # adding matching pairs
 
+    # add batch_size * fraction_same images from the same subsets
     while len(x1) < int(batch_size * fraction_same):
       img_match = subsets[chosen_class][np.random.randint(len(subsets[chosen_class]))]
       while img_match == img_anch:
@@ -259,7 +263,7 @@ class DataSet(object):
       labels.append(1)
 
 
-    # adding non-matching pairs
+    # add (batch_size - batch_size * fraction_same) images from different subsets
     while len(x1) < batch_size:
       diff_class = np.random.randint(num_classes)
       while diff_class == chosen_class:

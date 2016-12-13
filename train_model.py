@@ -51,7 +51,9 @@ def train_step(loss):
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    raise NotImplementedError
+    optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
+    optimizer.learning_rate = FLAGS.learning_rate
+    train_op = optimizer.minimize(loss)
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -97,17 +99,10 @@ def train():
     # PUT YOUR CODE HERE  #
     ########################
 
-    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir, validation_size=5000)
-    x_val, y_val = cifar10.validation.images[0:100], cifar10.validation.labels[0:100]
-    x_test, y_test = cifar10.test.images[0:100], cifar10.test.labels[0:100]
+    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir)
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
 
     #### PARAMETERS
-    learning_rate = FLAGS.learning_rate
-    iterations = FLAGS.max_steps
-    batch_size = FLAGS.batch_size
-    log_dir = FLAGS.log_dir
-    checkpoint_freq = FLAGS.checkpoint_freq
-    eval_freq =FLAGS.eval_freq
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -128,9 +123,7 @@ def train():
           accuracy = cnn.accuracy(infs, y)
         fc2 = cnn.fc2
         merged = tf.merge_all_summaries()
-        optimizer = tf.train.AdamOptimizer(learning_rate)
-        optimizer.learning_rate = learning_rate
-        opt_operation = optimizer.minimize(loss)
+        opt_operation = train_step(loss)
 
     
     with tf.Session() as sess:
@@ -141,27 +134,28 @@ def train():
         test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
         print("Initial Test Accuracy = {0:.3f}".format(test_acc))
 
-        train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
-        test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
+        train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
+        test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
 
-        for iteration in range(iterations + 1):
-          x_batch, y_batch = cifar10.train.next_batch(batch_size)      
-          _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch})
+        for iteration in range(FLAGS.max_steps + 1):
+            x_batch, y_batch = cifar10.train.next_batch(FLAGS.batch_size)      
+            _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch})
 
-          if iteration % eval_freq == 0:
-            [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
-            train_writer.add_summary(summary_train, iteration)
+            if iteration % FLAGS.print_freq == 0:
+                [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
+                train_writer.add_summary(summary_train, iteration)
+                print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
+                            format(iteration, FLAGS.max_steps, train_loss, train_acc))
 
-            [val_acc, val_loss, summary_val] = sess.run([accuracy, loss, merged], feed_dict={x: x_val, y: y_val})
-            test_writer.add_summary(summary_val, iteration)
 
-            print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
-                            format(iteration, iterations, train_loss, train_acc))
-            print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Validation Accuracy = {3:.3f}".
-                            format(iteration, iterations, val_loss, val_acc))
+            if iteration % FLAGS.eval_freq == 0:
+                [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
+                test_writer.add_summary(summary_test, iteration)
+                print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Test Accuracy = {3:.3f}".
+                                format(iteration, FLAGS.max_steps, test_loss, test_acc))
 
-            if iteration > 0 and iteration % checkpoint_freq == 0:
-                saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
+            if iteration > 0 and iteration % FLAGS.checkpoint_freq == 0:
+                saver.save(sess, FLAGS.checkpoint_dir + '/cnn_model.ckpt')
         
         train_writer.flush()
         test_writer.flush()
@@ -214,19 +208,22 @@ def train_siamese():
     """
 
     # Set the random seeds for reproducibility. DO NOT CHANGE.
+
+    def _check_loss(data):
+        loss_val = 0.
+        for batch in data:
+            x1_data, x2_data, y_data = batch
+            [curr_loss] = sess.run([loss], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
+            loss_val += curr_loss
+        return loss_val / len(data)
+
     tf.set_random_seed(42)
     np.random.seed(42)
-    cifar10 = get_cifar_10_siamese(DATA_DIR_DEFAULT, validation_size=5000)
+    cifar10 = get_cifar_10_siamese(FLAGS.data_dir, validation_size=5000)
     val_data  = create_dataset_siamese(cifar10.validation, num_tuples = 1000, fraction_same = 0.2)
     test_data  = create_dataset_siamese(cifar10.test, num_tuples = 1000, fraction_same = 0.2)
-
-
+   
     #### PARAMETERS
-    learning_rate = FLAGS.learning_rate
-    iterations = FLAGS.max_steps
-    batch_size = FLAGS.batch_size
-    log_dir = FLAGS.log_dir
-    checkpoint_freq = FLAGS.checkpoint_freq
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
     n_classes = len(classes)
@@ -245,59 +242,54 @@ def train_siamese():
         with tf.name_scope('cross-entropy-loss'): 
           loss = cnn_siamese.loss(infs1, infs2, y, 0.1)
         merged = tf.merge_all_summaries()
-        optimizer = tf.train.AdamOptimizer(learning_rate)
-        optimizer.learning_rate = learning_rate
-        opt_operation = optimizer.minimize(loss)
-
+        opt_operation = train_step(loss)
     
     with tf.Session() as sess:
-        def check_loss(data):
-            loss_val = 0.
-            for batch in data:
-                x1_data, x2_data, y_data = batch
-                [curr_loss] = sess.run([loss], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
-                loss_val += curr_loss
-            return loss_val / len(data)
 
         saver = tf.train.Saver() 
 
         sess.run(tf.initialize_all_variables())
         # print("testing!")
-        test_loss = check_loss(test_data)
+        test_loss = _check_loss(test_data)
         print("Initial Test Loss = {0:.3f}".format(test_loss))
 
-                # train_writer = tf.train.SummaryWriter(log_dir + "/train/", sess.graph)
-        # test_writer = tf.train.SummaryWriter(log_dir + "/test/", sess.graph)
-
-        for iteration in range(iterations + 1):
+        # train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
+        # test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
+        val_losses = []
+        train_losses = []
+        for iteration in range(FLAGS.max_steps + 1):
           # print(iteration)
-          x1_train, x2_train, y_train = cifar10.train.next_batch(BATCH_SIZE_DEFAULT)
-          _ = sess.run([opt_operation], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
+            x1_train, x2_train, y_train = cifar10.train.next_batch(FLAGS.batch_size)
+            _ = sess.run([opt_operation], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
 
-          if iteration % eval_freq == 0:
-            [train_loss] = sess.run([loss], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
-            val_loss = check_loss(val_data)
-            # train_writer.add_summary(summary_train, iteration)
+            if iteration % FLAGS.print_freq == 0:
+                [train_loss] = sess.run([loss], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
+                train_losses.append(train_loss)
+                # train_writer.add_summary(summary_train, iteration)
+                print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}".
+                                format(iteration, FLAGS.max_steps, train_loss))
+               
+            if iteration % FLAGS.eval_freq == 0:
+                val_loss = _check_loss(val_data)
+                val_losses.append(val_loss)
+                # [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
+                # test_writer.add_summary(summary_test, iteration)
+                print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}".
+                                format(iteration, FLAGS.max_steps, val_loss))
 
-            # [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
-            # test_writer.add_summary(summary_test, iteration)
+            if iteration > 0 and iteration % FLAGS.checkpoint_freq == 0:
+                saver.save(sess, FLAGS.checkpoint_dir + '/cnn_model_siamese.ckpt')
 
-            print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}".
-                            format(iteration, iterations, train_loss))
-            print("Iteration {0:d}/{1:d}. Validation Loss = {2:.3f}".
-                            format(iteration, iterations, val_loss))
-
-            if iteration > 0 and iteration % checkpoint_freq == 0:
-                saver.save(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model_siamese.ckpt')
-
-        test_loss = check_loss(test_data)
+        test_loss = _check_loss(test_data)
         print("Final Test Loss = {0:.3f}".format(test_loss))
         # train_writer.flush()
         # test_writer.flush()
         # train_writer.close()
         # test_writer.close()
 
-        sess.close()  
+        sess.close() 
+    print("train_loss", train_losses)
+    print("val_loss", val_losses)
     #######################
     # PUT YOUR CODE HERE  #
     ########################
@@ -307,7 +299,7 @@ def train_siamese():
     # END OF YOUR CODE    #
     ########################
 
-def get_conf_mat(test_predictions, true_labels, name, classes):
+def _get_conf_mat(test_predictions, true_labels, name, classes):
   """
   Constructs confusion matrix
   Args:
@@ -336,7 +328,7 @@ def get_conf_mat(test_predictions, true_labels, name, classes):
   conf_mat = conf_mat[cols]  
   print(conf_mat)
 
-def train_one_vs_all(features, y_test, name, classes):
+def _train_one_vs_all(features, y_test, name, classes):
     prop = 0.8
     x_train_1vsall = features[0:len(features)*prop]
     y_train_1vsall = y_test[0:len(y_test)*prop]
@@ -346,7 +338,7 @@ def train_one_vs_all(features, y_test, name, classes):
     model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(x_train_1vsall, y_train_1vsall)
     predictions = model.predict(x_test_1vsall)
     print(name + " accuracy:" , accuracy_score(predictions, y_test_1vsall))
-    get_conf_mat(predictions, y_test_1vsall, name, classes)
+    _get_conf_mat(predictions, y_test_1vsall, name, classes)
 
 
 def _plot_tsne(name, features, y):
@@ -386,16 +378,16 @@ def feature_extraction():
 
     
     tf.reset_default_graph()
-
+    classes = ['plane', 'car', 'bird', 'cat', 'deer',
+          'dog', 'frog', 'horse', 'ship', 'truck']
     
     tf.set_random_seed(42)
     np.random.seed(42)
-    cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
+    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir)
     x_test, y_test = cifar10.test.images, cifar10.test.labels
     y_test = np.argmax(y_test, axis=1)
     input_data_dim = cifar10.test.images.shape[1]
     n_classes = 10
-    learning_rate = LEARNING_RATE_DEFAULT
     cnn = ConvNet()
   
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
@@ -412,21 +404,21 @@ def feature_extraction():
 
         saver = tf.train.Saver()
         
-        saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model.ckpt')
+        saver.restore(sess, FLAGS.checkpoint_dir + '/cnn_model.ckpt')
         
         fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
        
         _plot_tsne("fc2.png", fc2_features, y_test)
 
-        #fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        #_plot_tsne("fc1.png",  fc1_features, y_test)
+        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
+        _plot_tsne("fc1.png",  fc1_features, y_test)
 
-        #flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        #_plot_tsne("flatten.png", flatten_features, y_test)
+        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
+        _plot_tsne("flatten.png", flatten_features, y_test)
        
-    train_one_vs_all(fc2_features, y_test, "FC2", classes)
-    #train_one_vs_all(fc1_features, y_test, "FC1", classes)
-    #train_one_vs_all(flatten_features, y_test, "Flatten", classes)
+    _train_one_vs_all(fc2_features, y_test, "FC2", classes)
+    _train_one_vs_all(fc1_features, y_test, "FC1", classes)
+    _train_one_vs_all(flatten_features, y_test, "Flatten", classes)
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
@@ -455,15 +447,13 @@ def feature_extraction_siamese():
 
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
-    colors = ['r','g','b','y', 'm', 'c', 'w', 'k', 'chartreuse', 'gray']
     tf.set_random_seed(42)
     np.random.seed(42)
-    cifar10 = cifar10_utils.get_cifar10(DATA_DIR_DEFAULT)
-    x_test, y_test = cifar10.test.images[0:100], cifar10.test.labels[0:100]
+    cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir)
+    x_test, y_test = cifar10.test.images, cifar10.test.labels
     y_test = np.argmax(y_test, axis=1)
     input_data_dim = cifar10.test.images.shape[1]
     n_classes = 10
-    learning_rate = LEARNING_RATE_DEFAULT
 
     cnn_siamese = Siamese()
 
@@ -472,22 +462,16 @@ def feature_extraction_siamese():
 
     with tf.name_scope('train_cnn'):
         infs1 = cnn_siamese.inference(x, reuse=None)
-        fc1 = cnn_siamese.fc1
-        fc2 = cnn_siamese.fc2
         l2_out = cnn_siamese.l2_out
 
 
     with tf.Session() as sess:
         saver = tf.train.Saver()
-        saver.restore(sess, CHECKPOINT_DIR_DEFAULT + '/cnn_model_siamese.ckpt')
-        # fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        # _plot_tsne("FC1", fc1_features, y_test)
-        # fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
-        # _plot_tsne("FC2", fc2_features, y_test)
+        saver.restore(sess, FLAGS.checkpoint_dir + '/cnn_model_siamese.ckpt')
 
         l2_out_features = sess.run([l2_out], feed_dict={x: x_test})[0]
-        _plot_tsne("L2 out", l2_out_features, y_test, colors, classes)
-        
+        _plot_tsne("L2 out", l2_out_features, y_test)
+        _train_one_vs_all(l2_out_features, y_test, "L2 norm", classes)        
 
     # raise NotImplementedError
     ########################
@@ -519,19 +503,21 @@ def main(_):
     print_flags()
 
     initialize_folders()
-    print(FLAGS.is_train)
-    print(FLAGS.is_train == False)
-    if FLAGS.is_train:
+    
+    if str(FLAGS.is_train) == "True":
         if FLAGS.train_model == 'linear':
-            # train()
-            feature_extraction()
+            train()
         elif FLAGS.train_model == 'siamese':
             train_siamese()
-            # feature_extraction_siamese()
         else:
             raise ValueError("--train_model argument can be linear or siamese")
     else:
-        feature_extraction()
+        if FLAGS.train_model == 'linear':
+            feature_extraction()
+        elif FLAGS.train_model == 'siamese':
+            feature_extraction_siamese()
+        else:
+            raise ValueError("--train_model argument can be linear or siamese")
 
 if __name__ == '__main__':
     # Command line arguments
@@ -555,7 +541,7 @@ if __name__ == '__main__':
                       help='Summaries log directory')
     parser.add_argument('--checkpoint_dir', type = str, default = CHECKPOINT_DIR_DEFAULT,
                       help='Checkpoint directory')
-    parser.add_argument('--is_train', type = bool, default = True,
+    parser.add_argument('--is_train', type = str, default = "True",
                       help='Training or feature extraction')
     parser.add_argument('--train_model', type = str, default = 'linear',
                       help='Type of model. Possible options: linear and siamese')
