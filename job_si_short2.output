@@ -1,0 +1,54 @@
+is_train : False
+data_dir : ./cifar10/cifar-10-batches-py
+eval_freq : 500
+learning_rate : 0.0001
+print_freq : 500
+batch_size : 128
+checkpoint_dir : ./ckpt_si_short
+log_dir : ./logs_si_short
+train_model : siamese
+checkpoint_freq : 10000
+max_steps : 50000
+[t-SNE] Computing pairwise distances...
+[t-SNE] Computing 91 nearest neighbors...
+[t-SNE] Computed conditional probabilities for sample 1000 / 10000
+[t-SNE] Computed conditional probabilities for sample 2000 / 10000
+[t-SNE] Computed conditional probabilities for sample 3000 / 10000
+[t-SNE] Computed conditional probabilities for sample 4000 / 10000
+[t-SNE] Computed conditional probabilities for sample 5000 / 10000
+[t-SNE] Computed conditional probabilities for sample 6000 / 10000
+[t-SNE] Computed conditional probabilities for sample 7000 / 10000
+[t-SNE] Computed conditional probabilities for sample 8000 / 10000
+[t-SNE] Computed conditional probabilities for sample 9000 / 10000
+[t-SNE] Computed conditional probabilities for sample 10000 / 10000
+[t-SNE] Mean sigma: 0.002747
+[t-SNE] Iteration 25: error = 1.4794222, gradient norm = 0.0006357
+[t-SNE] Iteration 25: gradient norm 0.000636. Finished.
+[t-SNE] Iteration 50: error = 1.4431132, gradient norm = 0.0034074
+[t-SNE] Iteration 75: error = 1.4262396, gradient norm = 0.0027125
+[t-SNE] Iteration 100: error = 1.4221087, gradient norm = 0.0025758
+[t-SNE] Error after 100 iterations with early exaggeration: 1.422109
+[t-SNE] Iteration 125: error = 1.3926656, gradient norm = 0.0018865
+[t-SNE] Iteration 150: error = 1.3821381, gradient norm = 0.0017130
+[t-SNE] Iteration 175: error = 1.3794254, gradient norm = 0.0016718
+[t-SNE] Iteration 200: error = 1.3786716, gradient norm = 0.0016611
+[t-SNE] Iteration 225: error = 1.3784709, gradient norm = 0.0016583
+[t-SNE] Iteration 250: error = 1.3784176, gradient norm = 0.0016575
+[t-SNE] Iteration 275: error = 1.3784009, gradient norm = 0.0016573
+[t-SNE] Iteration 300: error = 1.3783966, gradient norm = 0.0016572
+[t-SNE] Iteration 325: error = 1.3783954, gradient norm = 0.0016572
+[t-SNE] Iteration 325: error difference 0.000000. Finished.
+[t-SNE] Error after 325 iterations: 1.378395
+L2 norm accuracy: 0.2525
+       True  plane  car  bird  cat  deer  dog  frog  horse  ship  truck
+True                                                                   
+0     plane    115    5     0    2     2    3    13      3    35     16
+1       car     35   23     0    1     9    7    45      5    32     46
+2      bird     56    6     1    0    23   14    66      5     8      8
+3       cat     43    6     4    2    25   24    59      7     7     22
+4      deer     34    3     0    0    30   14    76      9     5     13
+5       dog     46    9     2    1    20   31    50      8     9     13
+6      frog     35    7     1    2    15   11   118      5     1     16
+7     horse     35    8     0    1    19   18    49     19    13     38
+8      ship     75    4     0    1     4   15    14      5    77     29
+9     truck     33   11     1    1     6    0    25      6    37     89
