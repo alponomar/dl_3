@@ -188,7 +188,7 @@ class Siamese(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
-        """
+        """          
         d2 = tf.reduce_sum(tf.square(channel_1 - channel_2))
         contrastive_loss_all = label * d2 + (1. - label) * tf.maximum(margin - d2, 0.)
 
@@ -199,7 +199,7 @@ class Siamese(object):
 
         # tf.scalar_summary('reg loss', layers_reg_loss)
         # tf.scalar_summary('contrastive loss', contrastive_loss)
-        
+         
         distance_squared = tf.reduce_sum(tf.square(tf.sub(channel_1,
                                                           channel_2)), 1)
         loss = tf.mul(label, distance_squared) + \
