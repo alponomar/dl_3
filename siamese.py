@@ -89,72 +89,72 @@ class Siamese(object):
               tf.histogram_summary('l2_out', self.l2_out)
             """
             with tf.variable_scope('siamese') as conv_scope:
-            ########################
-            # PUT YOUR CODE HERE  #
-            ########################
-            xavier = tf.contrib.layers.xavier_initializer()
-            l2_reg = tf.contrib.layers.l2_regularizer(0.)
-            filter_depth = 3
-            batch_size = tf.shape(x)[0]
-            # Compute the two convolutional layers in a loop
-            for i in range(2):
-                with tf.variable_scope('conv' + str(i+1), reuse=reuse):
-                    # Get the 5x5 filters with 3 color channels and 64 output channels
-                    filters = tf.get_variable('filter',
-                                              shape=[5, 5, filter_depth, 64],
-                                              initializer=xavier,
-                                              dtype=tf.float32)
-                    tf.histogram_summary('siamese' + str(channel) + '/conv' + str(i+1) + '/filters',
-                                         filters)
-                    # Do the convolution
-                    x = tf.nn.conv2d(x,
-                                     filters,
-                                     [1, 1, 1, 1],
-                                     "SAME",
-                                     name='convolve')
-                    # Activation function
-                    x = tf.nn.relu(x, name='ReLU')
-                    # Max pooling
-                    x = tf.nn.max_pool(x,
-                                       [1, 3, 3, 1],
-                                       [1, 2, 2, 1],
-                                       'SAME',
-                                       name='pooling')
-                    filter_depth = 64
-            # Flatten the tensor
-            x = tf.reshape(x, [batch_size, -1], name='flatten')
-            # Compute the three fully connected layers in for loop
-            input_size = 4096
-            output_size = 384
-            for i in range(2):
-                with tf.variable_scope('fc' + str(i+1), reuse=reuse):
-                    # Get the weights
-                    weights = tf.get_variable('weights',
-                                              shape=[input_size, output_size],
-                                              initializer=xavier,
-                                              regularizer=l2_reg,
-                                              dtype=tf.float32)
-                    tf.histogram_summary('siamese' + str(channel) + '/fc' + str(i+1) + '/weights',
-                                         weights)
-                    # Get the bias
-                    bias = tf.get_variable('bias',
-                                           shape=[output_size,],
-                                           initializer=tf.constant_initializer(0.),
-                                           dtype=tf.float32)
-                    tf.histogram_summary('siamese' + str(channel) + '/fc' + str(i+1) + '/bias',
-                                         bias)
-                    # Compute the output
-                    x = tf.nn.relu(tf.add(tf.matmul(x, weights), bias),
-                                   name='siamese' + str(channel) + '/fc' + str(i+1) + '/fc' + str(i+1))
-                    input_size = output_size
-                    output_size /= 2
-            # normalise with the 2-norm
-            l2_out = tf.nn.l2_normalize(x, [1], name='l2_norm')
-            tf.histogram_summary('siamese' + str(channel) + '/l2_out', l2_out)
+	            ########################
+	            # PUT YOUR CODE HERE  #
+	            ########################
+	            xavier = tf.contrib.layers.xavier_initializer()
+	            l2_reg = tf.contrib.layers.l2_regularizer(0.)
+	            filter_depth = 3
+	            batch_size = tf.shape(x)[0]
+	            # Compute the two convolutional layers in a loop
+	            for i in range(2):
+	                with tf.variable_scope('conv' + str(i+1), reuse=reuse):
+	                    # Get the 5x5 filters with 3 color channels and 64 output channels
+	                    filters = tf.get_variable('filter',
+	                                              shape=[5, 5, filter_depth, 64],
+	                                              initializer=xavier,
+	                                              dtype=tf.float32)
+	                    tf.histogram_summary('siamese' + str(channel) + '/conv' + str(i+1) + '/filters',
+	                                         filters)
+	                    # Do the convolution
+	                    x = tf.nn.conv2d(x,
+	                                     filters,
+	                                     [1, 1, 1, 1],
+	                                     "SAME",
+	                                     name='convolve')
+	                    # Activation function
+	                    x = tf.nn.relu(x, name='ReLU')
+	                    # Max pooling
+	                    x = tf.nn.max_pool(x,
+	                                       [1, 3, 3, 1],
+	                                       [1, 2, 2, 1],
+	                                       'SAME',
+	                                       name='pooling')
+	                    filter_depth = 64
+	            # Flatten the tensor
+	            x = tf.reshape(x, [batch_size, -1], name='flatten')
+	            # Compute the three fully connected layers in for loop
+	            input_size = 4096
+	            output_size = 384
+	            for i in range(2):
+	                with tf.variable_scope('fc' + str(i+1), reuse=reuse):
+	                    # Get the weights
+	                    weights = tf.get_variable('weights',
+	                                              shape=[input_size, output_size],
+	                                              initializer=xavier,
+	                                              regularizer=l2_reg,
+	                                              dtype=tf.float32)
+	                    tf.histogram_summary('siamese' + str(channel) + '/fc' + str(i+1) + '/weights',
+	                                         weights)
+	                    # Get the bias
+	                    bias = tf.get_variable('bias',
+	                                           shape=[output_size,],
+	                                           initializer=tf.constant_initializer(0.),
+	                                           dtype=tf.float32)
+	                    tf.histogram_summary('siamese' + str(channel) + '/fc' + str(i+1) + '/bias',
+	                                         bias)
+	                    # Compute the output
+	                    x = tf.nn.relu(tf.add(tf.matmul(x, weights), bias),
+	                                   name='siamese' + str(channel) + '/fc' + str(i+1) + '/fc' + str(i+1))
+	                    input_size = output_size
+	                    output_size /= 2
+	            # normalise with the 2-norm
+	            l2_out = tf.nn.l2_normalize(x, [1], name='l2_norm')
+	            tf.histogram_summary('siamese' + str(channel) + '/l2_out', l2_out)
             ########################
             # END OF YOUR CODE    #
             ########################
-        return self.l2_out
+        return l2_out
 
     def loss(self, channel_1, channel_2, label, margin):
         """
