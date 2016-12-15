@@ -210,9 +210,9 @@ def train_siamese():
 
     # Set the random seeds for reproducibility. DO NOT CHANGE.
     cifar10 = get_cifar_10_siamese(FLAGS.data_dir)
-    val_set = create_dataset(cifar10.test,
+    val_set = create_dataset_siamese(cifar10.test,
                              batch_size=FLAGS.batch_size)
-    network = siamese.Siamese()
+    network = Siamese()
 
     with tf.Graph().as_default():
         image1 = tf.placeholder(dtype=tf.float32,
@@ -227,11 +227,12 @@ def train_siamese():
         train_op = train_step(loss)
         init_op = tf.initialize_all_variables()
         summary = tf.merge_all_summaries()
-        saver = tf.train.Saver()
+       
 
         test_loss = test_accuracy = 'NA'
 
         with tf.Session() as sess:
+            saver = tf.train.Saver()
             test_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/test',
                                                  sess.graph)
             train_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/train',
@@ -258,7 +259,7 @@ def train_siamese():
 
                 if step % FLAGS.checkpoint_freq == 0 or step == FLAGS.max_steps - 1:
                     save_path = saver.save(sess, FLAGS.checkpoint_dir + \
-                                '/siamese/checkpoint' + str(step) + '.ckpt')
+                                '/checkpoint' + str(step) + '.ckpt')
                     print("Model saved in file: %s" % save_path)
 
                 if step % FLAGS.print_freq == 0 or step == FLAGS.max_steps - 1:
