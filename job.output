@@ -1,0 +1,26 @@
+is_train : True
+data_dir : ./cifar10/cifar-10-batches-py
+eval_freq : 500
+learning_rate : 0.0001
+print_freq : 500
+batch_size : 128
+checkpoint_dir : ./ckpt_si_short
+log_dir : ./logs_si_short
+train_model : siamese
+checkpoint_freq : 10000
+max_steps : 2000
+1
+2
+batch!
+batch!
+batch!
+batch!
+batch!
+batch!
+batch!
+batch!
+batch!
+batch!
+3
+0
+batch!

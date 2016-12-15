@@ -1,0 +1,13 @@
+#!/bin/bash
+#BATCH -n 1
+#SBATCH -p gpu_short
+#SBATCH -t 01:00:00
+#SBATCH -o job.output
+#SBATCH -e job.error
+
+module load python/2.7.11
+module load cuda/7.5.18
+module load cudnn/7.5-v5
+
+srun -u python train_model.py --max_steps 2000 --eval_freq 500 --print_freq 500 --checkpoint_freq 10000 --checkpoint_dir ./ckpt_si_short --train_model siamese --log_dir ./logs_si_short
+

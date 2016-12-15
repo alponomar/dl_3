@@ -84,13 +84,15 @@ class ConvNet(object):
             self.flatten = tf.reshape(conv2, [-1, 8 * 8 * 64])
 
             self.fc1 = _forward_fc_layer(name='fc1', w_shape=[8 * 8 * 64, 384], b_shape=384, 
-              x_inp=self.flatten, regularizer_strength=0.001, act_func=tf.nn.relu)
+              x_inp=self.flatten, regularizer_strength=0.0, act_func=tf.nn.relu)
             self.fc2 = _forward_fc_layer(name='fc2', w_shape=[384, 192], b_shape=192, 
-              x_inp=self.fc1, regularizer_strength=0.001, act_func=tf.nn.relu)
+              x_inp=self.fc1, regularizer_strength=0.0, act_func=tf.nn.relu)
             logits = _forward_fc_layer(name='logits', w_shape=[192, 10], b_shape=10, 
-              x_inp=self.fc2, regularizer_strength=0.001, act_func=lambda x: x)
+              x_inp=self.fc2, regularizer_strength=0.0, act_func=lambda x: x)
 
 
+        logits2 = tf.cond(self.is_training, lambda: tf.nn.dropout(logits, self.dropout_rate), lambda: logits)
+    	
         return logits
 
     def accuracy(self, logits, labels):

@@ -1,0 +1,14 @@
+#!/bin/bash
+#BATCH -n 1
+#SBATCH -p gpu_short
+#SBATCH -t 01:00:00
+#SBATCH -o job_lin_dr.output
+#SBATCH -e job_lin_dr.error
+
+module load python/2.7.11
+module load cuda/7.5.18
+module load cudnn/7.5-v5
+
+srun -u python train_model.py --is_train False --max_steps 15000 --eval_freq 250 --print_freq 250 --checkpoint_freq 15000 --checkpoint_dir ./ckpt_lin_dr05 --train_model linear --log_dir ./logs_lin_dr05
+
+

@@ -5,7 +5,7 @@ from __future__ import print_function
 import argparse
 import os
 from sklearn.metrics import accuracy_score
-
+from sklearn.metrics import classification_report
 import tensorflow as tf
 import numpy as np
 import cifar10_utils
@@ -100,7 +100,7 @@ def train():
     ########################
 
     cifar10 = cifar10_utils.get_cifar10(FLAGS.data_dir)
-    x_test, y_test = cifar10.test.images, cifar10.test.labels
+    x_test, y_test = cifar10.test.images[0:1000], cifar10.test.labels[0:1000]
 
     #### PARAMETERS
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
@@ -111,7 +111,8 @@ def train():
 
 
     cnn = ConvNet()
-
+    cnn.is_training = tf.placeholder(tf.bool)
+    cnn.dropout_rate = 0.5
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
     y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
 
@@ -131,7 +132,7 @@ def train():
     
         sess.run(tf.initialize_all_variables())
 
-        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
+        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test, cnn.is_training:False})
         print("Initial Test Accuracy = {0:.3f}".format(test_acc))
 
         train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
@@ -139,17 +140,17 @@ def train():
 
         for iteration in range(FLAGS.max_steps + 1):
             x_batch, y_batch = cifar10.train.next_batch(FLAGS.batch_size)      
-            _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch})
+            _ = sess.run([opt_operation], feed_dict={x: x_batch, y: y_batch, cnn.is_training:False})
 
             if iteration % FLAGS.print_freq == 0:
-                [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch})
+                [train_acc, train_loss, summary_train] = sess.run([accuracy, loss, merged], feed_dict={x: x_batch, y: y_batch, cnn.is_training:False})
                 train_writer.add_summary(summary_train, iteration)
                 print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}, Train Accuracy = {3:.3f}".
                             format(iteration, FLAGS.max_steps, train_loss, train_acc))
 
 
             if iteration % FLAGS.eval_freq == 0:
-                [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
+                [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test, cnn.is_training:False})
                 test_writer.add_summary(summary_test, iteration)
                 print("Iteration {0:d}/{1:d}. Test Loss = {2:.3f}, Test Accuracy = {3:.3f}".
                                 format(iteration, FLAGS.max_steps, test_loss, test_acc))
@@ -162,7 +163,7 @@ def train():
         train_writer.close()
         test_writer.close()
 
-        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test})
+        test_acc = sess.run(accuracy, feed_dict={x: x_test, y: y_test, cnn.is_training:False})
         print("Final Test Accuracy = {0:.3f}".format(test_acc))
 
         sess.close()  
@@ -209,20 +210,23 @@ def train_siamese():
 
     # Set the random seeds for reproducibility. DO NOT CHANGE.
 
-    def _check_loss(data):
+    def _check_loss(data, test_wrt, it) :
         loss_val = 0.
         for batch in data:
             x1_data, x2_data, y_data = batch
-            [curr_loss] = sess.run([loss], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
+            [curr_loss, summary_test] = sess.run([loss, merged], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
             loss_val += curr_loss
-        return loss_val / len(data)
+            test_wrt.add_summary(summary_test, it)
+        return loss_val / len(data), test_wrt
 
+    print("1")
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = get_cifar_10_siamese(FLAGS.data_dir, validation_size=5000)
-    val_data  = create_dataset_siamese(cifar10.validation, num_tuples = 1000, fraction_same = 0.2)
-    test_data  = create_dataset_siamese(cifar10.test, num_tuples = 1000, fraction_same = 0.2)
-   
+    print("2")
+    val_data  = create_dataset_siamese(cifar10.validation, num_tuples = 5)
+    test_data  = create_dataset_siamese(cifar10.test, num_tuples = 5)
+    print("3")
     #### PARAMETERS
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
@@ -250,27 +254,27 @@ def train_siamese():
 
         sess.run(tf.initialize_all_variables())
         # print("testing!")
-        test_loss = _check_loss(test_data)
-        print("Initial Test Loss = {0:.3f}".format(test_loss))
+     #   test_loss = _check_loss(test_data)
+     #   print("Initial Test Loss = {0:.3f}".format(test_loss))
 
-        # train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
-        # test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
+        train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
+        test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
         val_losses = []
         train_losses = []
         for iteration in range(FLAGS.max_steps + 1):
-          # print(iteration)
+            print(iteration)
             x1_train, x2_train, y_train = cifar10.train.next_batch(FLAGS.batch_size)
             _ = sess.run([opt_operation], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
 
             if iteration % FLAGS.print_freq == 0:
-                [train_loss] = sess.run([loss], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
+                [train_loss, summary_train] = sess.run([loss, merged], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
                 train_losses.append(train_loss)
-                # train_writer.add_summary(summary_train, iteration)
+                train_writer.add_summary(summary_train, iteration)
                 print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}".
                                 format(iteration, FLAGS.max_steps, train_loss))
                
             if iteration % FLAGS.eval_freq == 0:
-                val_loss = _check_loss(val_data)
+                val_loss,test_writer = _check_loss(val_data,test_writer, iteration)
                 val_losses.append(val_loss)
                 # [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
                 # test_writer.add_summary(summary_test, iteration)
@@ -280,12 +284,12 @@ def train_siamese():
             if iteration > 0 and iteration % FLAGS.checkpoint_freq == 0:
                 saver.save(sess, FLAGS.checkpoint_dir + '/cnn_model_siamese.ckpt')
 
-        test_loss = _check_loss(test_data)
-        print("Final Test Loss = {0:.3f}".format(test_loss))
-        # train_writer.flush()
-        # test_writer.flush()
-        # train_writer.close()
-        # test_writer.close()
+    #    test_loss = _check_loss(test_data)
+      #  print("Final Test Loss = {0:.3f}".format(test_loss))
+        train_writer.flush()
+        test_writer.flush()
+        train_writer.close()
+        test_writer.close()
 
         sess.close() 
     print("train_loss", train_losses)
@@ -338,6 +342,7 @@ def _train_one_vs_all(features, y_test, name, classes):
     model = OneVsRestClassifier(LinearSVC(random_state=0)).fit(x_train_1vsall, y_train_1vsall)
     predictions = model.predict(x_test_1vsall)
     print(name + " accuracy:" , accuracy_score(predictions, y_test_1vsall))
+    print(name + " report:" , classification_report(predictions, y_test_1vsall, target_names=classes))
     _get_conf_mat(predictions, y_test_1vsall, name, classes)
 
 
@@ -389,10 +394,10 @@ def feature_extraction():
     input_data_dim = cifar10.test.images.shape[1]
     n_classes = 10
     cnn = ConvNet()
-  
+    cnn.dropout_rate = 1.0  
     x = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x")
     y = tf.placeholder(tf.float32, shape=(None, n_classes), name="y")
-
+    cnn.is_training = tf.placeholder(tf.bool)
     with tf.name_scope('train_cnn'):
         infs = cnn.inference(x)
         flatten = cnn.flatten
@@ -406,15 +411,15 @@ def feature_extraction():
         
         saver.restore(sess, FLAGS.checkpoint_dir + '/cnn_model.ckpt')
         
-        fc2_features = sess.run([fc2], feed_dict={x: x_test})[0]
+        fc2_features = sess.run([fc2], feed_dict={x: x_test, cnn.is_training:False })[0]
        
-        _plot_tsne("fc2.png", fc2_features, y_test)
+        # _plot_tsne("fc2.png", fc2_features, y_test)
 
-        fc1_features = sess.run([fc1], feed_dict={x: x_test})[0]
-        _plot_tsne("fc1.png",  fc1_features, y_test)
+        fc1_features = sess.run([fc1], feed_dict={x: x_test, cnn.is_training: False})[0]
+        # _plot_tsne("fc1.png",  fc1_features, y_test)
 
-        flatten_features = sess.run([flatten], feed_dict={x: x_test})[0]
-        _plot_tsne("flatten.png", flatten_features, y_test)
+        flatten_features = sess.run([flatten], feed_dict={x: x_test, cnn.is_training: False})[0]
+        # _plot_tsne("flatten.png", flatten_features, y_test)
        
     _train_one_vs_all(fc2_features, y_test, "FC2", classes)
     _train_one_vs_all(fc1_features, y_test, "FC1", classes)
