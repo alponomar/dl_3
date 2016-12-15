@@ -50,10 +50,11 @@ class Siamese(object):
             # PUT YOUR CODE HERE  #
             ########################
             # raise NotImplementedError
+            xavier = tf.contrib.layers.xavier_initializer()
             
             def _forward_conv_layer(name, w_shape, b_shape, x_inp, max_pool_kernel, max_pool_stride, act_func):
               with tf.variable_scope(name):
-                W = tf.get_variable('W', w_shape, initializer=tf.random_normal_initializer(mean = 0.0, stddev=1e-3, dtype=tf.float32))
+                W = tf.get_variable('W', w_shape, initializer=xavier)
                 b = tf.get_variable('b', b_shape, initializer=tf.constant_initializer(0))
                 conv_out = act_func(tf.nn.conv2d(x_inp, W, strides=[1, 1, 1, 1], padding='SAME') + b)
                 out = tf.nn.max_pool(conv_out, ksize=[1, max_pool_kernel, max_pool_kernel, 1], strides=[1, max_pool_stride, max_pool_stride, 1], padding='SAME')
@@ -65,7 +66,7 @@ class Siamese(object):
 
             def _forward_fc_layer(name, w_shape, b_shape, x_inp, act_func):
               with tf.variable_scope(name):
-                W = tf.get_variable('W', w_shape, initializer=tf.random_normal_initializer(mean = 0.0, stddev=1e-3, dtype=tf.float32))
+                W = tf.get_variable('W', w_shape, initializer=xavier)
                 b = tf.get_variable('b', b_shape, initializer=tf.constant_initializer(0))
                 out = act_func(tf.matmul(x_inp, W) + b)
                 tf.histogram_summary(name + '_weights', W)
