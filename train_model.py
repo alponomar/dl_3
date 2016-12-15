@@ -209,7 +209,67 @@ def train_siamese():
     """
 
     # Set the random seeds for reproducibility. DO NOT CHANGE.
+    cifar10 = get_cifar_10_siamese(FLAGS.data_dir)
+    val_set = create_dataset(cifar10.test,
+                             batch_size=FLAGS.batch_size)
+    network = siamese.Siamese()
 
+    with tf.Graph().as_default():
+        image1 = tf.placeholder(dtype=tf.float32,
+                           shape=[None, 32, 32, 3])
+        image2 = tf.placeholder(dtype=tf.float32,
+                           shape=[None, 32, 32, 3])
+        labels = tf.placeholder(dtype=tf.float32,
+                           shape=[None])
+        channel1 = network.inference(image1, 1)
+        channel2 = network.inference(image2, 2, reuse=True)
+        loss = network.loss(channel1, channel2, labels, .48)
+        train_op = train_step(loss)
+        init_op = tf.initialize_all_variables()
+        summary = tf.merge_all_summaries()
+        saver = tf.train.Saver()
+
+        test_loss = test_accuracy = 'NA'
+
+        with tf.Session() as sess:
+            test_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/test',
+                                                 sess.graph)
+            train_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/train',
+                                                  sess.graph)
+            sess.run(init_op)
+            for step in range(FLAGS.max_steps):
+                x1, x2, y = cifar10.train.next_batch(FLAGS.batch_size)
+                train_dict = {image1 : x1, image2 : x2, labels : y}
+                _, train_loss = sess.run([train_op, loss],
+                                         feed_dict=train_dict)
+
+                if step % FLAGS.eval_freq == 0 or step == FLAGS.max_steps - 1:
+                    test_loss = 0.
+                    for x1, x2, y in val_set:
+                        test_dict = {image1 : x1, image2 : x2, labels : y}
+                        tmp_test_loss = sess.run(loss, feed_dict=test_dict)
+                        test_loss += tmp_test_loss
+
+                    test_loss /= float(len(val_set))
+                    summary_str_test = sess.run(summary, feed_dict=test_dict)
+                    test_writer.add_summary(summary_str_test, step)
+                    summary_str_train = sess.run(summary, feed_dict=train_dict)
+                    train_writer.add_summary(summary_str_train, step)
+
+                if step % FLAGS.checkpoint_freq == 0 or step == FLAGS.max_steps - 1:
+                    save_path = saver.save(sess, FLAGS.checkpoint_dir + \
+                                '/siamese/checkpoint' + str(step) + '.ckpt')
+                    print("Model saved in file: %s" % save_path)
+
+                if step % FLAGS.print_freq == 0 or step == FLAGS.max_steps - 1:
+                    print('step:' + str(step))
+                    print('Train loss: ' + str(train_loss))
+                    print('Test loss: ' + str(test_loss) + '\n')
+        test_writer.flush()
+        train_writer.flush()
+        test_writer.close()
+        train_writer.close()
+    """
     def _check_loss(data) :
         loss_val = 0.
         for batch in data:
@@ -296,6 +356,7 @@ def train_siamese():
         sess.close() 
     print("train_loss", train_losses)
     print("val_loss", val_losses)
+    """
     #######################
     # PUT YOUR CODE HERE  #
     ########################
