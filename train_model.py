@@ -209,12 +209,20 @@ def train_siamese():
     """
 
     # Set the random seeds for reproducibility. DO NOT CHANGE.
+    """
     cifar10 = get_cifar_10_siamese(FLAGS.data_dir)
     val_set = create_dataset_siamese(cifar10.test,
                              batch_size=FLAGS.batch_size)
     network = Siamese()
 
     with tf.Graph().as_default():
+        infs1 = cnn_siamese.inference(x1)
+        infs2 = cnn_siamese.inference(x2, reuse=True)
+        with tf.name_scope('cross-entropy-loss'): 
+          loss = cnn_siamese.loss(infs1, infs2, y, 0.48)
+        merged = tf.merge_all_summaries()
+        opt_operation = train_step(loss)
+
         image1 = tf.placeholder(dtype=tf.float32,
                            shape=[None, 32, 32, 3])
         image2 = tf.placeholder(dtype=tf.float32,
@@ -299,9 +307,9 @@ def train_siamese():
 
     cnn_siamese = Siamese()
 
-    x1 = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x1")
-    x2 = tf.placeholder(tf.float32, shape=(None, input_data_dim, input_data_dim, 3), name="x2")
-    y = tf.placeholder(tf.float32, shape=(None, 1), name="y")
+    x1 = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name="x1")
+    x2 = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name="x2")
+    y = tf.placeholder(tf.float32, shape=[None], name="y")
 
     with tf.name_scope('train_cnn'):
         infs1 = cnn_siamese.inference(x1)
@@ -349,15 +357,15 @@ def train_siamese():
 
     #    test_loss = _check_loss(test_data)
       #  print("Final Test Loss = {0:.3f}".format(test_loss))
-        train_writer.flush()
-        test_writer.flush()
-        train_writer.close()
-        test_writer.close()
+        # train_writer.flush()
+        # test_writer.flush()
+        # train_writer.close()
+        # test_writer.close()
 
         sess.close() 
     print("train_loss", train_losses)
     print("val_loss", val_losses)
-    """
+    
     #######################
     # PUT YOUR CODE HERE  #
     ########################
