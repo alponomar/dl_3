@@ -17,7 +17,7 @@ class Siamese(object):
     input tensors and a label in general.
     """
 
-    def inference(self, x, channel, reuse = False):
+    def inference(self, x, reuse = False):
         """
         Defines the model used for inference. Output of this model is fed to the
         objective (or loss) function defined for the task.
@@ -50,7 +50,7 @@ class Siamese(object):
             # PUT YOUR CODE HERE  #
             ########################
             # raise NotImplementedError
-            """
+            
             def _forward_conv_layer(name, w_shape, b_shape, x_inp, max_pool_kernel, max_pool_stride, act_func):
               with tf.variable_scope(name):
                 W = tf.get_variable('W', w_shape, initializer=tf.random_normal_initializer(mean = 0.0, stddev=1e-3, dtype=tf.float32))
@@ -151,10 +151,11 @@ class Siamese(object):
 	            # normalise with the 2-norm
 	            l2_out = tf.nn.l2_normalize(x, [1], name='l2_norm')
 	            tf.histogram_summary('siamese' + str(channel) + '/l2_out', l2_out)
+	        """
             ########################
             # END OF YOUR CODE    #
             ########################
-        return l2_out
+        return self.l2_out
 
     def loss(self, channel_1, channel_2, label, margin):
         """
@@ -186,15 +187,16 @@ class Siamese(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
-        # d2 = tf.reduce_sum(tf.square(channel_1 - channel_2))
-        #contrastive_loss_all = label * d2 + (1. - label) * tf.maximum(margin - d2, 0.)
+        d2 = tf.reduce_sum(tf.square(channel_1 - channel_2))
+        contrastive_loss_all = label * d2 + (1. - label) * tf.maximum(margin - d2, 0.)
 
-        #loss = tf.reduce_mean(contrastive_loss_all)
+        loss = tf.reduce_mean(contrastive_loss_all)
         # layers_reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
         # loss = layers_reg_loss + contrastive_loss
 
         # tf.scalar_summary('reg loss', layers_reg_loss)
         # tf.scalar_summary('contrastive loss', contrastive_loss)
+        """
         distance_squared = tf.reduce_sum(tf.square(tf.sub(channel_1,
                                                           channel_2)), 1)
         loss = tf.mul(label, distance_squared) + \
@@ -203,6 +205,7 @@ class Siamese(object):
                                                   tf.sqrt(tf.add(distance_squared,
                                                                  1e-6))), 0.)))
         loss = tf.reduce_mean(loss)
+        """
         tf.scalar_summary('contrastive loss', loss)
         # raise NotImplementedError
         ########################

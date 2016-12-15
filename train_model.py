@@ -221,8 +221,8 @@ def train_siamese():
                            shape=[None, 32, 32, 3])
         labels = tf.placeholder(dtype=tf.float32,
                            shape=[None])
-        channel1 = network.inference(image1, 1)
-        channel2 = network.inference(image2, 2, reuse=True)
+        channel1 = network.inference(image1)
+        channel2 = network.inference(image2, reuse=True)
         loss = network.loss(channel1, channel2, labels, .48)
         train_op = train_step(loss)
         init_op = tf.initialize_all_variables()
