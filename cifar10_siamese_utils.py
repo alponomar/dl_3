@@ -157,18 +157,12 @@ def create_dataset(source_data, num_tuples = 500, batch_size = 128, fraction_sam
     # PUT YOUR CODE HERE  #
     ########################
     # raise NotImplementedError
-    source_data._validation_idxs = []
-    dset = [[source_data.next_batch(batch_size, fraction_same, validation=True) for i in range(num_tuples)]]   
+
+    dset = [source_data.next_batch(num_tuples, fraction_same) for i in range(num_tuples)]
+    ########################
+    # END OF YOUR CODE    #
+    ########################
     return dset
-    ########################
-    # END OF YOUR CODE    #
-    ########################
-
-
-    #dset = [source_data.next_batch(num_tuples, fraction_same) for i in range(num_tuples)]
-    ########################
-    # END OF YOUR CODE    #
-    ########################
 
 class DataSet(object):
   """
@@ -191,8 +185,6 @@ class DataSet(object):
     self._epochs_completed = 0
     self._index_in_epoch = 0
     self._id_list = []
-    self._validation_idxs = []
-    self.classes = np.argmax(self.labels, 1)
 
   @property
   def images(self):
@@ -210,7 +202,7 @@ class DataSet(object):
   def epochs_completed(self):
     return self._epochs_completed
 
-  def next_batch(self, batch_size, fraction_same = 0.2, validation=False):
+  def next_batch(self, batch_size, fraction_same = 0.2):
     """
     Returns the next `batch_size` examples from this data set. A batch consist of image pairs and a label.
 
@@ -246,72 +238,47 @@ class DataSet(object):
     ########################
     # PUT YOUR CODE HERE  #
     ########################
-    print("batch!")
-    num_runs = 64
-    x1s = []
-    x2s = []
-    labelses = []
-    # We keep batch_size/num_runs for each run - this is to ensure we have more
-    # variation in the anchor images
-    for i in range(num_runs):
-        anchor_idx = self._index_in_epoch
-        if validation:
-            self._validation_idxs.append(anchor_idx)
-        else:
-            while anchor_idx in self._validation_idxs:
-                self._index_in_epoch += 1
-                anchor_idx = self._index_in_epoch    
-        self._index_in_epoch += 1
-        
-        if self._index_in_epoch > self._num_examples:
-            self._epochs_completed += 1
     
-            perm = np.arange(self._num_examples)
-            np.random.shuffle(perm)
-            self._images = self._images[perm]
-            self._labels = self._labels[perm]
-    
-            anchor_idx = 0
-            self._index_in_epoch = 1
-            assert batch_size <= self._num_examples
-    
-        anchor_class = np.argmax(self.labels[anchor_idx])
-    
-        num_same  = int(batch_size * fraction_same)
-    
-        same_idxs = np.random.choice(np.where(self.classes == anchor_class)[0], 
-                                     num_same, replace=False)
-        diff_idxs = np.random.choice(np.where(self.classes != anchor_class)[0], 
-                                     batch_size - num_same, replace=False)
-        
-        indexs = np.hstack((same_idxs, diff_idxs))
-        labels = np.hstack((np.repeat(1, len(same_idxs)),
-                            np.repeat(0, len(diff_idxs))))
-        
-        assert len(labels) == batch_size
-        assert len(indexs) == batch_size
-        
-        shuffled_order = np.arange(len(indexs))
-        np.random.shuffle(shuffled_order)
-        
-        indexs = indexs[shuffled_order]
-        labels = labels[shuffled_order]
-    
-        x1 = np.resize(self._images[anchor_idx], (batch_size, 32, 32, 3))
-        x2 = self._images[indexs]
-        
-        keep = np.random.choice(np.arange(batch_size),
-                                size=batch_size/num_runs, replace=False)
-        x1s += [x1[i] for i in keep]
-        x2s += [x2[i] for i in keep]
-        labelses += [labels[i] for i in keep]
-    ########################
-    # END OF YOUR CODE    #
-    ########################
-    x1 = x1s
-    x2 = x2s
-    labels = labelses 
+    labels = np.argmax(self.labels, axis = 1)
+    num_classes = np.amax(labels) + 1
+    # 10 subsets for 10 classes
+    subsets = [[j for j in range(labels.shape[0]) if labels[j] == i] for i in range(num_classes)]
+    x1 = []
+    x2 = []
+    labels = []
+    # pick random class
+    chosen_class = np.random.randint(num_classes)
+    # pick random imagr from this class
+    img_anch = subsets[chosen_class][np.random.randint(len(subsets[chosen_class]))]
+    # adding matching pairs
 
+    # add batch_size * fraction_same images from the same subsets
+    while len(x1) < int(batch_size * fraction_same):
+      img_match = subsets[chosen_class][np.random.randint(len(subsets[chosen_class]))]
+      while img_match == img_anch:
+        img_match = subsets[chosen_class][np.random.randint(len(subsets[chosen_class]))]
+
+      x1.append(self.images[img_anch])
+      x2.append(self.images[img_match])
+      labels.append(1)
+
+
+    # add (batch_size - batch_size * fraction_same) images from different subsets
+    while len(x1) < batch_size:
+      diff_class = np.random.randint(num_classes)
+      while diff_class == chosen_class:
+        diff_class = np.random.randint(num_classes)
+
+      img_not_match = subsets[diff_class][np.random.randint(len(subsets[diff_class]))]
+
+      x1.append(self.images[img_anch])
+      x2.append(self.images[img_not_match])
+      labels.append(0)
+
+    x1 = np.array(x1)
+    x2 = np.array(x2)
+    labels = np.array(labels)
+    labels = labels.reshape(-1, 1)
 
     # raise NotImplementedError
     ########################
