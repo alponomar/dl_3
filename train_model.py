@@ -226,17 +226,17 @@ def train_siamese():
         loss = network.loss(channel1, channel2, labels, .48)
         train_op = train_step(loss)
         init_op = tf.initialize_all_variables()
-        summary = tf.merge_all_summaries()
+        # summary = tf.merge_all_summaries()
        
 
         test_loss = test_accuracy = 'NA'
 
         with tf.Session() as sess:
             saver = tf.train.Saver()
-            test_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/test',
-                                                 sess.graph)
-            train_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/train',
-                                                  sess.graph)
+            # test_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/test',
+                                                 # sess.graph)
+            # train_writer = tf.train.SummaryWriter(FLAGS.log_dir + '/siamese/train',
+                                                  # sess.graph)
             sess.run(init_op)
             for step in range(FLAGS.max_steps):
                 x1, x2, y = cifar10.train.next_batch(FLAGS.batch_size)
@@ -252,10 +252,10 @@ def train_siamese():
                         test_loss += tmp_test_loss
 
                     test_loss /= float(len(val_set))
-                    summary_str_test = sess.run(summary, feed_dict=test_dict)
-                    test_writer.add_summary(summary_str_test, step)
-                    summary_str_train = sess.run(summary, feed_dict=train_dict)
-                    train_writer.add_summary(summary_str_train, step)
+                    # summary_str_test = sess.run(summary, feed_dict=test_dict)
+                    # test_writer.add_summary(summary_str_test, step)
+                    # summary_str_train = sess.run(summary, feed_dict=train_dict)
+                    # train_writer.add_summary(summary_str_train, step)
 
                 if step % FLAGS.checkpoint_freq == 0 or step == FLAGS.max_steps - 1:
                     save_path = saver.save(sess, FLAGS.checkpoint_dir + \
@@ -266,10 +266,10 @@ def train_siamese():
                     print('step:' + str(step))
                     print('Train loss: ' + str(train_loss))
                     print('Test loss: ' + str(test_loss) + '\n')
-        test_writer.flush()
-        train_writer.flush()
-        test_writer.close()
-        train_writer.close()
+        # test_writer.flush()
+        # train_writer.flush()
+        # test_writer.close()
+        # train_writer.close()
     """
     def _check_loss(data) :
         loss_val = 0.
