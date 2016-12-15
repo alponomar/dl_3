@@ -44,13 +44,15 @@ class Siamese(object):
         """
         x_inp = tf.reshape(x, [-1, 32, 32, 3])
         with tf.variable_scope('ConvNet', reuse=reuse) as conv_scope:
+        	if reuse:
+               conv_scope.reuse_variables()
             ########################
             # PUT YOUR CODE HERE  #
             ########################
             # raise NotImplementedError
 
-            def _forward_conv_layer(name, w_shape, b_shape, x_inp, max_pool_kernel, max_pool_stride, act_func, reuse):
-              with tf.variable_scope(name, reuse=reuse):
+            def _forward_conv_layer(name, w_shape, b_shape, x_inp, max_pool_kernel, max_pool_stride, act_func):
+              with tf.variable_scope(name):
                 W = tf.get_variable('W', w_shape, initializer=tf.random_normal_initializer(mean = 0.0, stddev=1e-3, dtype=tf.float32))
                 b = tf.get_variable('b', b_shape, initializer=tf.constant_initializer(0))
                 conv_out = act_func(tf.nn.conv2d(x_inp, W, strides=[1, 1, 1, 1], padding='SAME') + b)
@@ -61,8 +63,8 @@ class Siamese(object):
                 tf.histogram_summary(name + '_maxpool', out)
                 return out
 
-            def _forward_fc_layer(name, w_shape, b_shape, x_inp, act_func, reuse):
-              with tf.variable_scope(name, reuse=reuse):
+            def _forward_fc_layer(name, w_shape, b_shape, x_inp, act_func):
+              with tf.variable_scope(name):
                 W = tf.get_variable('W', w_shape, initializer=tf.random_normal_initializer(mean = 0.0, stddev=1e-3, dtype=tf.float32))
                 b = tf.get_variable('b', b_shape, initializer=tf.constant_initializer(0))
                 out = act_func(tf.matmul(x_inp, W) + b)
@@ -72,17 +74,17 @@ class Siamese(object):
               return out
 
             conv1 = _forward_conv_layer(name='conv1', w_shape=[5, 5, 3, 64], b_shape=64, 
-              x_inp=x_inp, max_pool_kernel=3, max_pool_stride=2, act_func=tf.nn.relu, reuse=reuse)  
+              x_inp=x_inp, max_pool_kernel=3, max_pool_stride=2, act_func=tf.nn.relu)  
             conv2 = _forward_conv_layer(name='conv2', w_shape=[5, 5, 64, 64], b_shape=64, 
-              x_inp=conv1, max_pool_kernel=3, max_pool_stride=2, act_func=tf.nn.relu, reuse=reuse) 
+              x_inp=conv1, max_pool_kernel=3, max_pool_stride=2, act_func=tf.nn.relu) 
 
             flatten = tf.reshape(conv2, [-1, 8 * 8 * 64])
 
             self.fc1 = _forward_fc_layer(name='fc1', w_shape=[8 * 8 * 64, 384], b_shape=384, 
-              x_inp=flatten, act_func=tf.nn.relu, reuse=reuse)
+              x_inp=flatten, act_func=tf.nn.relu)
             self.fc2 = _forward_fc_layer(name='fc2', w_shape=[384, 192], b_shape=192, 
-              x_inp=self.fc1, act_func=tf.nn.relu, reuse=reuse)
-            with tf.variable_scope('l2_norm', reuse=reuse):
+              x_inp=self.fc1, act_func=tf.nn.relu)
+            with tf.variable_scope('l2_norm'):
               self.l2_out = tf.nn.l2_normalize(self.fc2, 1)
               tf.histogram_summary('l2_out', self.l2_out)
             ########################
