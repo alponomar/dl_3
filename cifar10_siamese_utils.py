@@ -239,7 +239,7 @@ class DataSet(object):
     # PUT YOUR CODE HERE  #
     ########################
     
-    """
+    
     labels = np.argmax(self.labels, axis = 1)
     num_classes = np.amax(labels) + 1
     # 10 subsets for 10 classes
@@ -279,7 +279,7 @@ class DataSet(object):
     x1 = np.array(x1)
     x2 = np.array(x2)
     labels = np.array(labels)
-    labels = labels.reshape(-1, 1)
+    #labels = labels.reshape(-1, 1)
     """
     anchor_idx = np.random.randint(len(self._images))
     anchor_label = np.argmax(self._labels[anchor_idx])
@@ -311,6 +311,7 @@ class DataSet(object):
     ########################
     # END OF YOUR CODE    #
     ########################
+    """
     return x1, x2, labels
 
 def read_data_sets(data_dir, one_hot = True, validation_size = 0):
