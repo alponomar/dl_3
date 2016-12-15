@@ -210,23 +210,25 @@ def train_siamese():
 
     # Set the random seeds for reproducibility. DO NOT CHANGE.
 
-    def _check_loss(data, test_wrt, it) :
+    def _check_loss(data) :
         loss_val = 0.
         for batch in data:
             x1_data, x2_data, y_data = batch
-            [curr_loss, summary_test] = sess.run([loss, merged], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
+            [curr_loss] = sess.run([loss], feed_dict={x1: x1_data, x2: x2_data, y: y_data})
             loss_val += curr_loss
-            test_wrt.add_summary(summary_test, it)
-        return loss_val / len(data), test_wrt
+            # test_wrt.add_summary(summary_test, it)
+        # print(len(data))
+        # print(loss_val)
+	return loss_val / len(data)
 
-    print("1")
+    # print("1")
     tf.set_random_seed(42)
     np.random.seed(42)
     cifar10 = get_cifar_10_siamese(FLAGS.data_dir, validation_size=5000)
-    print("2")
-    val_data  = create_dataset_siamese(cifar10.validation, num_tuples = 5)
-    test_data  = create_dataset_siamese(cifar10.test, num_tuples = 5)
-    print("3")
+    # print("2")
+    val_data  = create_dataset_siamese(cifar10.validation, num_tuples = 500)
+    test_data  = create_dataset_siamese(cifar10.test, num_tuples = 500)
+    # print("3")
     #### PARAMETERS
     classes = ['plane', 'car', 'bird', 'cat', 'deer',
           'dog', 'frog', 'horse', 'ship', 'truck']
@@ -241,10 +243,10 @@ def train_siamese():
     y = tf.placeholder(tf.float32, shape=(None, 1), name="y")
 
     with tf.name_scope('train_cnn'):
-        infs1 = cnn_siamese.inference(x1, reuse=None)
+        infs1 = cnn_siamese.inference(x1)
         infs2 = cnn_siamese.inference(x2, reuse=True)
         with tf.name_scope('cross-entropy-loss'): 
-          loss = cnn_siamese.loss(infs1, infs2, y, 0.1)
+          loss = cnn_siamese.loss(infs1, infs2, y, 0.48)
         merged = tf.merge_all_summaries()
         opt_operation = train_step(loss)
     
@@ -257,24 +259,24 @@ def train_siamese():
      #   test_loss = _check_loss(test_data)
      #   print("Initial Test Loss = {0:.3f}".format(test_loss))
 
-        train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
-        test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
+        #train_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/train/", sess.graph)
+        #test_writer = tf.train.SummaryWriter(FLAGS.log_dir + "/test/", sess.graph)
         val_losses = []
         train_losses = []
         for iteration in range(FLAGS.max_steps + 1):
-            print(iteration)
+           # print(iteration)
             x1_train, x2_train, y_train = cifar10.train.next_batch(FLAGS.batch_size)
             _ = sess.run([opt_operation], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
 
             if iteration % FLAGS.print_freq == 0:
-                [train_loss, summary_train] = sess.run([loss, merged], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
+                [train_loss] = sess.run([loss], feed_dict={x1: x1_train, x2: x2_train, y: y_train})
                 train_losses.append(train_loss)
-                train_writer.add_summary(summary_train, iteration)
+              #  train_writer.add_summary(summary_train, iteration)
                 print("Iteration {0:d}/{1:d}. Train Loss = {2:.3f}".
                                 format(iteration, FLAGS.max_steps, train_loss))
                
             if iteration % FLAGS.eval_freq == 0:
-                val_loss,test_writer = _check_loss(val_data,test_writer, iteration)
+                val_loss = _check_loss(val_data)
                 val_losses.append(val_loss)
                 # [test_acc, test_loss, summary_test] = sess.run([accuracy, loss, merged], feed_dict={x: x_test, y: y_test})
                 # test_writer.add_summary(summary_test, iteration)

@@ -158,7 +158,7 @@ def create_dataset(source_data, num_tuples = 500, batch_size = 128, fraction_sam
     ########################
     # raise NotImplementedError
 
-    dset = [source_data.next_batch(num_tuples, fraction_same) for i in range(num_tuples)]
+    dset = [source_data.next_batch(batch_size, fraction_same) for i in range(num_tuples)]
     ########################
     # END OF YOUR CODE    #
     ########################
@@ -239,6 +239,7 @@ class DataSet(object):
     # PUT YOUR CODE HERE  #
     ########################
     
+    """
     labels = np.argmax(self.labels, axis = 1)
     num_classes = np.amax(labels) + 1
     # 10 subsets for 10 classes
@@ -279,7 +280,33 @@ class DataSet(object):
     x2 = np.array(x2)
     labels = np.array(labels)
     labels = labels.reshape(-1, 1)
+    """
+    anchor_idx = np.random.randint(len(self._images))
+    anchor_label = np.argmax(self._labels[anchor_idx])
+    n_same_label = int(fraction_same * batch_size)
+    same_label_idxs = \
+        np.random.choice(list(set(np.where(np.argmax(self._labels, axis=1) == \
+                                           anchor_label)[0]) - {anchor_idx}),
+                         n_same_label,
+                         replace=False)
+    diff_label_idxs = \
+        np.random.choice(np.where(np.argmax(self._labels, axis=1) != \
+                                  anchor_label)[0],
+                         batch_size - n_same_label,
+                         replace=False)
 
+    idxs = np.hstack((same_label_idxs, diff_label_idxs))
+    labels = np.hstack((np.repeat(1, len(same_label_idxs)),
+                        np.repeat(0, len(diff_label_idxs))))
+
+    shuffled = np.arange(len(idxs))
+    np.random.shuffle(shuffled)
+
+    idxs = idxs[shuffled]
+    labels = labels[shuffled]
+    labels = labels.reshape(-1, 1)
+    x1 = np.resize(self.images[anchor_idx], (batch_size, 32, 32, 3))
+    x2 = self.images[idxs]
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
