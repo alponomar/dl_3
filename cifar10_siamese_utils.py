@@ -279,39 +279,12 @@ class DataSet(object):
     x1 = np.array(x1)
     x2 = np.array(x2)
     labels = np.array(labels)
-    #labels = labels.reshape(-1, 1)
-    """
-    anchor_idx = np.random.randint(len(self._images))
-    anchor_label = np.argmax(self._labels[anchor_idx])
-    n_same_label = int(fraction_same * batch_size)
-    same_label_idxs = \
-        np.random.choice(list(set(np.where(np.argmax(self._labels, axis=1) == \
-                                           anchor_label)[0]) - {anchor_idx}),
-                         n_same_label,
-                         replace=False)
-    diff_label_idxs = \
-        np.random.choice(np.where(np.argmax(self._labels, axis=1) != \
-                                  anchor_label)[0],
-                         batch_size - n_same_label,
-                         replace=False)
+    
 
-    idxs = np.hstack((same_label_idxs, diff_label_idxs))
-    labels = np.hstack((np.repeat(1, len(same_label_idxs)),
-                        np.repeat(0, len(diff_label_idxs))))
-
-    shuffled = np.arange(len(idxs))
-    np.random.shuffle(shuffled)
-
-    idxs = idxs[shuffled]
-    labels = labels[shuffled]
-    labels = labels.reshape(-1, 1)
-    x1 = np.resize(self.images[anchor_idx], (batch_size, 32, 32, 3))
-    x2 = self.images[idxs]
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
     ########################
-    """
     return x1, x2, labels
 
 def read_data_sets(data_dir, one_hot = True, validation_size = 0):

@@ -188,18 +188,18 @@ class Siamese(object):
         ########################
         # PUT YOUR CODE HERE  #
         ########################
-        """          
-        d2 = tf.reduce_sum(tf.square(channel_1 - channel_2))
-        contrastive_loss_all = label * d2 + (1. - label) * tf.maximum(margin - d2, 0.)
+                  
+        d2 = tf.reduce_sum(tf.square(channel_1 - channel_2), 1)
+        contrastive_loss_all = label * d2 + (1. - label) * tf.square(tf.maximum(margin - tf.sqrt(d2), 0.))
 
         loss = tf.reduce_mean(contrastive_loss_all)
-        """
+        
         # layers_reg_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
         # loss = layers_reg_loss + contrastive_loss
 
         # tf.scalar_summary('reg loss', layers_reg_loss)
         # tf.scalar_summary('contrastive loss', contrastive_loss)
-         
+        """ 
         distance_squared = tf.reduce_sum(tf.square(tf.sub(channel_1,
                                                           channel_2)), 1)
         loss = tf.mul(label, distance_squared) + \
@@ -207,8 +207,8 @@ class Siamese(object):
                       tf.square(tf.maximum(tf.sub(margin,
                                                   tf.sqrt(tf.add(distance_squared,
                                                                  1e-6))), 0.)))
-        loss = tf.reduce_mean(loss)
-        
+         loss = tf.reduce_mean(loss)
+        """
         tf.scalar_summary('contrastive loss', loss)
         # raise NotImplementedError
         ########################
